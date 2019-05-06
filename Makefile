@@ -92,11 +92,14 @@ checkjdk: $(JDK)/bin/java
 #
 # Cleanliness.
 #
-clean:
+cleanh:
+	rm -f src/c/luajava.h
+
+clean: cleanh
 	rm -f $(JAR_FILE)
 	rm -f $(SO_FILE)
 	rm -rf doc/us/API
-	rm -f $(CLASSDIR)/*.class src/c/*.o src/c/luajava.h
+	rm -f $(CLASSDIR)/*.class src/c/*.o
 	rm -f $(TAR_FILE) $(ZIP_FILE)
 
 dist:	dist_dir
