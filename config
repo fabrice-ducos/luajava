@@ -3,9 +3,13 @@
 LUA_DIR= /usr/local/share/lua/5.1.1
 LUA_LIBDIR= /usr/local/lib
 LUA_INCLUDES= /usr/local/include
+JAVAC_FLAGS=-Xlint:unchecked -Xlint:deprecation
 JDK= $(JAVA_HOME)
 # For Mac OS, comment the above line and uncomment this one
 #JDK=/Library/Java/Home
+
+JAVAC=$(JDK)/bin/javac
+JAVAH=$(JDK)/bin/javah
 
 # Full path to Lua static library
 LIB_LUA=$(LUA_LIBDIR)/liblua.a
@@ -13,7 +17,7 @@ LIB_LUA=$(LUA_LIBDIR)/liblua.a
 #Linux/BSD
 LIB_EXT= .so
 #Mac OS
-#LIB_EXT= .jnilib
+#LIB_EXT= .dylib
 
 LIB_PREFIX= lib
 
