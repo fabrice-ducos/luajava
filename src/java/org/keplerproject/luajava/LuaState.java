@@ -206,7 +206,7 @@ public class LuaState
 
   // Coroutine Functions
   private synchronized native int _yield(CPtr ptr, int nResults);
-  private synchronized native int _resume(CPtr ptr, int nargs);
+  private synchronized native int _resume(CPtr ptr, CPtr fromPtr, int nargs);
   private synchronized native int _status(CPtr ptr);
   
   // Gargabe Collection Functions
@@ -592,9 +592,9 @@ public class LuaState
   	return _yield(luaState, nResults);
   }
 
-  public int resume(int nArgs)
+  public int resume(int nArgs, LuaState from)
   {
-  	return _resume(luaState, nArgs);
+      return _resume(luaState, from.luaState, nArgs);
   }
   
   public int status()

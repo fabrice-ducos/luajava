@@ -3251,11 +3251,12 @@ JNIEXPORT jint JNICALL Java_org_keplerproject_luajava_LuaState__1yield
 ************************************************************************/
 
 JNIEXPORT jint JNICALL Java_org_keplerproject_luajava_LuaState__1resume
-  (JNIEnv * env , jobject jobj , jobject cptr , jint nArgs)
+(JNIEnv * env , jobject jobj , jobject cptr , jobject fromPtr, jint nArgs)
 {
    lua_State * L = getStateFromCPtr( env , cptr );
+   lua_State * from = getStateFromCPtr( env, fromPtr );
 
-   return ( jint ) lua_resume( L , nArgs );
+   return ( jint ) lua_resume( L , from, nArgs );
 }
 
 
