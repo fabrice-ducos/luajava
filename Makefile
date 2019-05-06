@@ -4,25 +4,30 @@
 
 include ./config
 
+PKGTREE=org/keplerproject/luajava
+PKGHEAD=org_keplerproject_luajava
+SRCDIR=src/java/$(PKGTREE)
+CLASSDIR=src/java/$(PKGTREE)
+
 CLASSES     = \
-	src/java/org/keplerproject/luajava/CPtr.class \
-	src/java/org/keplerproject/luajava/JavaFunction.class \
-	src/java/org/keplerproject/luajava/LuaException.class \
-	src/java/org/keplerproject/luajava/LuaInvocationHandler.class \
-	src/java/org/keplerproject/luajava/LuaJavaAPI.class \
-	src/java/org/keplerproject/luajava/LuaObject.class \
-	src/java/org/keplerproject/luajava/LuaState.class \
-	src/java/org/keplerproject/luajava/LuaStateFactory.class \
-	src/java/org/keplerproject/luajava/Console.class
+	$(CLASSDIR)/CPtr.class \
+	$(CLASSDIR)/JavaFunction.class \
+	$(CLASSDIR)/LuaException.class \
+	$(CLASSDIR)/LuaInvocationHandler.class \
+	$(CLASSDIR)/LuaJavaAPI.class \
+	$(CLASSDIR)/LuaObject.class \
+	$(CLASSDIR)/LuaState.class \
+	$(CLASSDIR)/LuaStateFactory.class \
+	$(CLASSDIR)/Console.class
 
 DOC_CLASSES	= \
-	src/java/org/keplerproject/luajava/JavaFunction.java \
-	src/java/org/keplerproject/luajava/LuaException.java \
-	src/java/org/keplerproject/luajava/LuaInvocationHandler.java \
-	src/java/org/keplerproject/luajava/LuaObject.java \
-	src/java/org/keplerproject/luajava/LuaState.java \
-	src/java/org/keplerproject/luajava/LuaStateFactory.java \
-	src/java/org/keplerproject/luajava/Console.java
+	$(SRCDIR)/JavaFunction.java \
+	$(SRCDIR)/LuaException.java \
+	$(SRCDIR)/LuaInvocationHandler.java \
+	$(SRCDIR)/LuaObject.java \
+	$(SRCDIR)/LuaState.java \
+	$(SRCDIR)/LuaStateFactory.java \
+	$(SRCDIR)/Console.java
 
 OBJS        = src/c/luajava.o
 .SUFFIXES: .java .class
@@ -41,14 +46,14 @@ build: checkjdk $(JAR_FILE) apidoc $(SO_FILE)
 # Build .class files.
 #
 .java.class:
-	$(JDK)/bin/javac -sourcepath ./src/java $*.java
+	$(JAVAC) $(JAVAC_FLAGS) -sourcepath ./src/java $*.java
 
 #
 # Create the JAR
 #
 $(JAR_FILE): $(CLASSES)
 	cd src/java; \
-	$(JDK)/bin/jar cvf ../../$(JAR_FILE) org/keplerproject/luajava/*.class; \
+	$(JDK)/bin/jar cvf ../../$(JAR_FILE) $(PKGTREE)/*.class; \
 	cd ../..;
   
 #
@@ -66,7 +71,8 @@ $(SO_FILE): $(OBJS)
 src/c/luajava.c: src/c/luajava.h
 
 src/c/luajava.h:
-	$(JDK)/bin/javah -o src/c/luajava.h -classpath "$(JAR_FILE)" org.keplerproject.luajava.LuaState
+	test -x $(JAVAH) && $(JAVAH) -o src/c/luajava.h -classpath "$(JAR_FILE)" org.keplerproject.luajava.LuaState || \
+	$(JAVAC) -cp "$(JAR_FILE)" -h src/c $(SRCDIR)/LuaState.java && mv src/c/$(PKGHEAD)_LuaState.h src/c/luajava.h
   
 
 ## regras implicitas para compilacao
@@ -87,7 +93,7 @@ clean:
 	rm -f $(JAR_FILE)
 	rm -f $(SO_FILE)
 	rm -rf doc/us/API
-	rm -f src/java/org/keplerproject/luajava/*.class src/c/*.o src/c/luajava.h
+	rm -f $(CLASSDIR)/*.class src/c/*.o src/c/luajava.h
 	rm -f $(TAR_FILE) $(ZIP_FILE)
 
 dist:	dist_dir
