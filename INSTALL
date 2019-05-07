@@ -1,0 +1,16 @@
+Download the latest sources of lua, e.g. lua-5.3.5.tar.gz (at the time of writing)
+tar xvzf lua-5.3.5.tar.gz
+
+On Linux:
+cd lua-5.3.5
+make linux CFLAGS+=-fPIC
+sudo make install
+
+On MacOSX:
+cd lua-5.3.5
+make macosx
+sudo make install
+
+On all systems:
+cd luajava-2019
+make
