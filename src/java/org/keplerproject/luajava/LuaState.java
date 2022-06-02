@@ -203,7 +203,10 @@ public class LuaState
 
   // Coroutine Functions
   private synchronized native int _yield(CPtr ptr, int nResults);
-  private synchronized native int _resume(CPtr ptr, CPtr fromPtr, int nargs);
+  // the nres argument in new in lua 5.4 (http://lua-users.org/lists/lua-l/2020-07/msg00120.html);
+  // lua_resume returns one integer. To get it in java, one needs to pass an array of one element, that
+  // will be filled with that value.
+  private synchronized native int _resume(CPtr ptr, CPtr fromPtr, int nargs, Integer[] nres);
   private synchronized native int _status(CPtr ptr);
   
   // Gargabe Collection Functions
@@ -560,9 +563,10 @@ public class LuaState
   	return _yield(luaState, nResults);
   }
 
-  public int resume(int nArgs, LuaState from)
+  public int resume(int nArgs, LuaState from, Integer[] nres)
   {
-      return _resume(luaState, from.luaState, nArgs);
+      int retval = _resume(luaState, from.luaState, nArgs, nres);
+      return retval;
   }
   
   public int status()

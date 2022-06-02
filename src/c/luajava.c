@@ -24,9 +24,9 @@
 ******************************************************************************/
 
 /******************************************************************************
- * Copyright (C) 2019 Fabrice Ducos
+ * Copyright (C) 2019, 2022 Fabrice Ducos
  *
- * updated for more recent JDK (8+) and Lua 5.3
+ * updated for more recent JDK (8+) and Lua 5.4
 ******************************************************************************/
 
 /***************************************************************************
@@ -2447,8 +2447,8 @@ JNIEXPORT jobject JNICALL Java_org_keplerproject_luajava_LuaState__1newthread
   (JNIEnv * env , jobject jobj , jobject cptr)
 {
    lua_State * L = getStateFromCPtr( env , cptr );
-   lua_State * newThread;
-   
+   lua_State * newThread;  
+ 
    jobject obj;
    jclass tempClass;
     
@@ -2949,11 +2949,11 @@ JNIEXPORT void JNICALL Java_org_keplerproject_luajava_LuaState__1pushString__Lor
   (JNIEnv * env , jobject jobj , jobject cptr , jbyteArray bytes , jint n)
 {
    lua_State * L = getStateFromCPtr( env , cptr );
-   char * cBytes;
+   jbyte * cBytes;
    
-   cBytes = ( char * ) ( *env )->GetByteArrayElements( env , bytes, NULL );
+   cBytes = ( jbyte * ) ( *env )->GetByteArrayElements( env , bytes, NULL );
    
-   lua_pushlstring( L , cBytes , n );
+   lua_pushlstring( L , (const char *) cBytes , n );
    
    ( *env )->ReleaseByteArrayElements( env , bytes , cBytes , 0 );
 }
@@ -3196,12 +3196,20 @@ JNIEXPORT jint JNICALL Java_org_keplerproject_luajava_LuaState__1yield
 ************************************************************************/
 
 JNIEXPORT jint JNICALL Java_org_keplerproject_luajava_LuaState__1resume
-(JNIEnv * env , jobject jobj , jobject cptr , jobject fromPtr, jint nArgs)
+(JNIEnv * env , jobject jobj , jobject cptr , jobject fromPtr, jint nArgs, jobject outputIntegerArray)
 {
    lua_State * L = getStateFromCPtr( env , cptr );
    lua_State * from = getStateFromCPtr( env, fromPtr );
+   
+   jint nres;
+   jint retval = lua_resume( L , from, nArgs, &nres );
 
-   return ( jint ) lua_resume( L , from, nArgs );
+   jclass integerClass = (* env)->FindClass(env, "java/lang/Integer");
+   jmethodID integerConstructor = (* env)->GetMethodID(env, integerClass, "<init>", "(I)V");
+   jobject wrappedInt = (* env)->NewObject(env, integerClass, integerConstructor, nres);
+   (* env)->SetObjectArrayElement(env, outputIntegerArray, 0, wrappedInt);
+
+   return retval;
 }
 
 
