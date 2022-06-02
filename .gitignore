@@ -1,6 +1,7 @@
 # these targets will be automatically generated
 src/c/luajava.h
 doc/us/API
+build
 
 *.class
 *.jar
