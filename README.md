@@ -18,6 +18,10 @@ Lua must be properly installed, and the environment variable JAVA_HOME must be s
 This version of LuaJava has been built successfully with Tcl 5.4 and OpenJDK 17.2 on a MacOSX system.
 Work is in progress for testing it in other environments (at least one flavour of Linux and one flavour of Windows).
 
+For testing:
+`make`
+`./build/bin/luajava`
+
 Original README
 ===============
 
