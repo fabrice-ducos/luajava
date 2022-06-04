@@ -12,6 +12,12 @@ Another motivation for this work is to make luajava compatible with recent versi
 The low level Lua API has evolved a bit in Lua 5.2, 5.3 and 5.4, making it necessary to update the
 Java bindings in order to keep luajava working.
 
+You will need to have a modern JDK (at least JDK 5+, preferrably JDK 8+) and a modern version of Lua (at least 5.4).
+Lua must be properly installed, and the environment variable JAVA_HOME must be set to a proper JDK root directory.
+
+This version of LuaJava has been built successfully with Tcl 5.4 and OpenJDK 17.2 on a MacOSX system.
+Work is in progress for testing it in other environments (at least one flavour of Linux and one flavour of Windows).
+
 Original README
 ===============
 
