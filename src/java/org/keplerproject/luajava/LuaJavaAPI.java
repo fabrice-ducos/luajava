@@ -638,7 +638,7 @@ public final class LuaJavaAPI
       {
         okType = false;
       }
-      obj = new Boolean(L.toBoolean(idx));
+      obj = Boolean.valueOf(L.toBoolean(idx));
     }
     else if (L.type(idx) == LuaState.LUA_TSTRING.intValue())
     {
@@ -675,7 +675,7 @@ public final class LuaJavaAPI
     }
     else if (L.type(idx) == LuaState.LUA_TNUMBER.intValue())
     {
-      Double db = new Double(L.toNumber(idx));
+      Double db = Double.valueOf(L.toNumber(idx));
       
       obj = LuaState.convertLuaNumber(db, parameter);
       if (obj == null)

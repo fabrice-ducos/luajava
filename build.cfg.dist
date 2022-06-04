@@ -1,4 +1,3 @@
-VERSION=1.1
 BUILD_DIR=build
 
 # if pkg-config is available on your system, just use it;

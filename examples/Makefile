@@ -1,4 +1,4 @@
-include ../build.cfg
+include ../version.cfg
 
 BUILD_DIR=../build
 LIB_DIR=$(BUILD_DIR)/lib

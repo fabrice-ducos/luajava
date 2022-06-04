@@ -946,7 +946,7 @@ public class LuaState
 
 		if (isBoolean(idx))
 		{
-			obj = new Boolean(toBoolean(idx));
+			obj = Boolean.valueOf(toBoolean(idx));
 		}
 		else if (type(idx) == LuaState.LUA_TSTRING.intValue())
 		{
