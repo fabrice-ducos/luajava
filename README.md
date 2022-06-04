@@ -19,8 +19,10 @@ This version of LuaJava has been built successfully with Tcl 5.4 and OpenJDK 17.
 Work is in progress for testing it in other environments (at least one flavour of Linux and one flavour of Windows).
 
 For testing:
-`make`
-`./build/bin/luajava`
+```
+make
+./build/bin/luajava
+```
 
 Original README
 ===============
