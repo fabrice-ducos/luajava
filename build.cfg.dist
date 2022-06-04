@@ -12,4 +12,6 @@ LUA_INCLUDES=`pkg-config --cflags-only-I lua`
 LIB_LUA=`pkg-config --libs lua`
 
 JAVAC_FLAGS=-Xlint:unchecked -Xlint:deprecation
-JAVA_HOME=/path/to/your/jdk
+
+# you can leave this line commented if your environment defines JAVA_HOME
+#JAVA_HOME=/path/to/your/jdk

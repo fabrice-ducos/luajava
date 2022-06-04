@@ -1,6 +1,8 @@
+include ../build.cfg
+
 BUILD_DIR=../build
 LIB_DIR=$(BUILD_DIR)/lib
-LUAJAVA=$(LIB_DIR)/luajava-1.1.jar
+LUAJAVA=$(LIB_DIR)/luajava-$(VERSION).jar
 CLASSPATH+=$(LUAJAVA):.
 LD_LIBRARY_PATH+=$(LIB_DIR)
 DYLD_LIBRARY_PATH=$(LD_LIBRARY_PATH)
