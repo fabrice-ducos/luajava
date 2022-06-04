@@ -1,6 +1,20 @@
 luajava
 =======
 
+This is a fork a luajava 2019, updated for Lua 5.4 and modern JDKs.
+
+Starting from JDK 10, the `javah` tool required for JNI is not available anymore, making it impossible
+to build old versions of luajava with recent JDKs. This fork makes luajava compatible with JDK 10+,
+but still uses `javah` when it is available. Support of JDK 4- has been dropped, in order to get rid
+of many obsolete constructs issuing warnings after Java 5.
+
+Another motivation for this work is to make luajava compatible with recent versions of the Lua language.
+The low level Lua API has evolved a bit in Lua 5.2, 5.3 and 5.4, making it necessary to update the
+Java bindings in order to keep luajava working.
+
+Original README
+===============
+
 LuaJava is a scripting tool for Java. The goal of this tool is to allow scripts written in Lua to manipulate components developed in Java. 
 
 It allows Java components to be accessed from Lua using the same syntax that is used for accessing Lua`s native objects, without any need 
