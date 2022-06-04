@@ -196,7 +196,7 @@ public class LuaObject
 		{
 			L.pushValue(index);
 			int key = L.Lref(LuaState.LUA_REGISTRYINDEX.intValue());
-			ref = new Integer(key);
+			ref = Integer.valueOf(key);
 		}
 	}
 
