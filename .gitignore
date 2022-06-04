@@ -1,3 +1,6 @@
+# local configuration, should not be committed
+build.cfg
+
 # these targets will be automatically generated
 src/c/luajava.h
 doc/us/API

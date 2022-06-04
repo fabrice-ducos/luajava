@@ -2,11 +2,19 @@
 # Makefile for LuaJava Distribution
 #
 
-include ./config
+ifeq (, $(wildcard build.cfg))
+$(error build.cfg was not found. It is probably a fresh installation. Please copy build.cfg.dist to build.cfg, check up the file and edit it if necessary, then retry)
+endif
+
+include ./build.cfg
+
+ifeq (, $(wildcard $(JAVA_HOME)/bin/javac))
+$(error JAVA_HOME=$(JAVA_HOME) doesn't appear to be set a valid JDK path. Please configure JAVA_HOME in build.cfg, then retry)
+endif
 
 #############################################################
-JAVAC=$(JDK)/bin/javac
-JAVAH=$(JDK)/bin/javah
+JAVAC=$(JAVA_HOME)/bin/javac
+JAVAH=$(JAVA_HOME)/bin/javah
 
 # ref. https://stackoverflow.com/questions/714100/os-detecting-makefile
 MAIN_TARGET=failed
@@ -18,17 +26,15 @@ else
     UNAME_P := $(shell uname -p)
     OS=$(UNAME_S)
     ifeq ($(UNAME_S),Darwin)
-      LIB_LUA=-L$(LUA_LIBDIR) -llua
       LIB_EXT=.dylib
       LIB_OPTION=-shared
-      JDK_INC_FLAGS=-I$(JDK)/include -I$(JDK)/include/darwin
+      JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
       MAIN_TARGET=run
     endif
     ifeq ($(UNAME_S),Linux)
-      LIB_LUA=-L$(LUA_LIBDIR) -llua -lm -ldl
       LIB_EXT=.so
       LIB_OPTION=-shared
-      JDK_INC_FLAGS=-I$(JDK)/include -I$(JDK)/include/linux
+      JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
       MAIN_TARGET=run
     endif
 endif
@@ -37,7 +43,7 @@ LIB_PREFIX=lib
 CC= gcc
 WARN= -O2 -Wall -fPIC -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings
 NOWARN= -Wno-unused-parameter -Wno-nested-externs
-INCS= $(JDK_INC_FLAGS) -I$(LUA_INCLUDES)
+INCS= $(JDK_INC_FLAGS) $(LUA_INCLUDES)
 CFLAGS= $(WARN) $(NOWARN) $(INCS)
 
 PKG= luajava-$(VERSION)
@@ -112,14 +118,14 @@ build: checkjdk $(JAR_FILE) apidoc $(SO_FILE)
 #
 $(JAR_FILE): $(CLASSES)
 	cd src/java; \
-	$(JDK)/bin/jar cvf ../../$(JAR_FILE) $(PKGTREE)/*.class; \
+	$(JAVA_HOME)/bin/jar cvf ../../$(JAR_FILE) $(PKGTREE)/*.class; \
 	cd ../..;
   
 #
 # Create the API Documentation
 #
 apidoc:
-	$(JDK)/bin/javadoc -public -classpath src/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
+	$(JAVA_HOME)/bin/javadoc -public -classpath src/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
 
 #
 # Build .c files.
@@ -146,7 +152,7 @@ $(OBJDIR)/%.o:  %.c
 # Check that the user has a valid JDK install.  This will cause a
 # premature death if JDK is not defined.
 #
-checkjdk: $(JDK)/bin/java
+checkjdk: $(JAVA_HOME)/bin/java
 
 #
 # Cleanliness.
