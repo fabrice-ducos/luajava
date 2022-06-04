@@ -6,7 +6,7 @@ This is a fork a luajava 2019, updated for Lua 5.4 and modern JDKs.
 Starting from JDK 10, the `javah` tool required for JNI is not available anymore, making it impossible
 to build old versions of luajava with recent JDKs. This fork makes luajava compatible with JDK 10+,
 but still uses `javah` when it is available. Support of JDK 4- has been dropped, in order to get rid
-of many obsolete constructs issuing warnings after Java 5.
+of many obsolete constructs issuing warnings after Java 5, and even errors in more recent versions of the JDK.
 
 Another motivation for this work is to make luajava compatible with recent versions of the Lua language.
 The low level Lua API has evolved a bit in Lua 5.2, 5.3 and 5.4, making it necessary to update the
