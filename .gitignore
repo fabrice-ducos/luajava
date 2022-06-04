@@ -1,9 +1,9 @@
 # local configuration, should not be committed
 build.cfg
 
-# this file is generated dynamically from LuaLib.template
-# (it only contains the version of the package)
-src/java/org/keplerproject/luajava/LuaLib.java
+# MANIFEST.MF is generated dynamically by the Makefile
+# from MANIFEST.TEMPLATE
+MANIFEST.MF
 
 # these targets will be automatically generated
 src/c/luajava.h

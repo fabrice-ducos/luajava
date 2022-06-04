@@ -81,7 +81,8 @@ public class LuaState
    */
   static
   {
-    System.loadLibrary(LuaLib.LUAJAVA_LIB);
+    String library = "luajava-" + LuaLib.getLuaJavaVersion();
+    System.loadLibrary(library);
   }
 
   private CPtr luaState;
