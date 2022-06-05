@@ -1,1 +1,5 @@
-Manifest-Version: __VERSION__
+Manifest-Version: __ENGINE_VERSION__
+Created-By: org.keplerproject.luajava
+LuaJava-EngineVersion: __ENGINE_VERSION__
+LuaJava-LanguageVersion: __LANGUAGE_VERSION__
+

@@ -48,10 +48,12 @@ NOWARN= -Wno-unused-parameter -Wno-nested-externs
 INCS= $(JDK_INC_FLAGS) $(LUA_INCLUDES)
 CFLAGS= $(WARN) $(NOWARN) $(INCS)
 
-PKG= luajava-$(VERSION)
+JAR=$(JAVA_HOME)/bin/jar
+
+PKG= luajava-$(LUAJAVA_VERSION)
 TAR_FILE= $(PKG).tar.gz
 ZIP_FILE= $(PKG).zip
-JAR_FILE= $(PKG).jar
+JAR_FILE= $(BUILD_DIR)/lib/$(PKG).jar
 SO_FILE= $(LIB_PREFIX)$(PKG)$(LIB_EXT)
 DIST_DIR= $(PKG)
 
@@ -60,7 +62,8 @@ PKGHEAD=org_keplerproject_luajava
 SRCDIR=src/java/$(PKGTREE)
 CLASSDIR=src/java/$(PKGTREE)
 EXAMPLES_DIR=examples
-MANIFEST=MANIFEST.MF
+METAINF=src/java/META-INF
+MANIFEST=$(METAINF)/MANIFEST.MF
 
 CLASSES     = \
 	$(CLASSDIR)/LuaLib.class \
@@ -105,9 +108,12 @@ run: $(EXAMPLES_DIR)
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
-build: checkjdk $(JAR_FILE) apidoc $(SO_FILE)
-	mkdir -p $(BUILD_DIR)/lib && mv $(JAR_FILE) $(SO_FILE) $(BUILD_DIR)/lib
-	mkdir -p $(BUILD_DIR)/bin && sed "s/__VERSION__/$(VERSION)/" src/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
+build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE)
+	mv $(SO_FILE) $(BUILD_DIR)/lib
+	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/" src/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR) $(BUILD_DIR)/bin $(BUILD_DIR)/lib
 
 #
 # Build .class files.
@@ -118,13 +124,15 @@ build: checkjdk $(JAR_FILE) apidoc $(SO_FILE)
 #
 # Create the JAR
 #
-$(JAR_FILE): $(MANIFEST) $(CLASSES)
-	cd src/java; \
-	$(JAVA_HOME)/bin/jar cvfm ../../$(JAR_FILE) ../../$(MANIFEST) $(PKGTREE)/*.class; \
-	cd ../..;
+$(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
+	cd src/java && $(JAR) cvfm $(JAR_FILE) META-INF/MANIFEST.MF $(PKGTREE)/*.class META-INF
 
-$(MANIFEST):
-	sed "s/__VERSION__/$(VERSION)/" MANIFEST.TEMPLATE > $@
+# forceit forces the manifest to be regenerated at each call of make
+$(MANIFEST): forceit
+	sed "s/__ENGINE_VERSION__/$(LUAJAVA_VERSION)/;s/__LANGUAGE_VERSION__/$(LUA_VERSION)/" MANIFEST.TEMPLATE > $@
+
+.PHONY: forceit
+forceit:
 
 #
 # Create the API Documentation

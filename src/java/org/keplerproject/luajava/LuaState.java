@@ -81,7 +81,7 @@ public class LuaState
    */
   static
   {
-    String library = "luajava-" + LuaLib.getLuaJavaVersion();
+    String library = "luajava-" + LuaLib.getEngineVersion();
     System.loadLibrary(library);
   }
 

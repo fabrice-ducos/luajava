@@ -36,22 +36,34 @@ import java.net.MalformedURLException;
  */
 public class LuaLib
 {
+
+    private static String ENGINE_VERSION = "unknown"; // the version of the LuaJava script engine
+    private static String LANGUAGE_VERSION = "unknown"; // the version of the Lua language (e.g. 5.4)
+
     static {
 	try {
-	    LUAJAVA_LIB = getManifestAttributeValue("Manifest-Version");
+	    ENGINE_VERSION = getManifestAttributeValue("LuaJava-EngineVersion");
 	}
 	catch (IOException ex) {
-	    System.err.println(ex.getMessage());
-	    LUAJAVA_LIB = "unknown";
+	    System.err.println("failed to obtain LuaJava-EngineVersion: " + ex.getMessage());
+	}
+
+	try {
+	    LANGUAGE_VERSION = getManifestAttributeValue("LuaJava-LanguageVersion");
+	}
+	catch (IOException ex) {
+	    System.err.println("failed to obtain LuaJava-LanguageVersion: " + ex.getMessage());
 	}
     }
     
     private LuaLib() {}
 
-    private static String LUAJAVA_LIB;
+    public static String getEngineVersion() {
+	return ENGINE_VERSION;
+    }
 
-    public static String getLuaJavaVersion() {
-	return LUAJAVA_LIB;
+    public static String getLanguageVersion() {
+	return LANGUAGE_VERSION;
     }
     
     private static String getManifestAttributeValue(String attributeName) throws MalformedURLException, IOException {
