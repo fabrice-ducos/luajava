@@ -3,14 +3,16 @@ BUILD_DIR=build
 # if pkg-config is available on your system, just use it;
 # otherwise, you'll need to find the installation path
 # of your lua library and to set the following variables
-# accordingly
+# accordingly (lua.h must be available, you may want
+# to install the 'dev' version of the library)
 #LUA_INCLUDES=-I/path/to/lua/include
 #LIB_LUA=-L/path/to/lua/lib -llua
 
 LUA_INCLUDES=`pkg-config --cflags-only-I lua`
 LIB_LUA=`pkg-config --libs lua`
 
-JAVAC_FLAGS=-Xlint:unchecked -Xlint:deprecation
+# custom flags can be added here
+#JAVAC_FLAGS=-Xlint:unchecked -Xlint:deprecation
 
 # you can leave this line commented if your environment defines JAVA_HOME
 #JAVA_HOME=/path/to/your/jdk
