@@ -1,7 +1,4 @@
 /*
- * $Id: LuaState.java,v 1.11 2007-09-17 19:28:40 thiago Exp $
- * Copyright (C) 2003-2007 Kepler Project.
- *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
