@@ -22,6 +22,12 @@ if [ -f "${MAVEN_REPO}/${JAR_FILE}" ] ; then
     echo "$0: warning: I will choose ${MAVEN_REPO}/${JAR_FILE}" 1>&2 ;
     echo "$0: warning: in order to remove this warning, just delete the unwanted copy (the .jar, not the dll|so|dylib file!)" 1>&2
   fi
+  
+  # it would be desirable to link against the dynamic library in the maven repo,
+  # but for some reason, it is stripped from its 'lib' prefix by maven install
+  # and is unusable for linking
+  # e.g. libluajava-2.3.dylib becomes luajava-2.3.dylib once Maven installs it, and java fails at link time
+  # Hence one cannot do this: LIBDIR=${MAVEN_REPO}
   JAR_PATH="${MAVEN_REPO}/${JAR_FILE}"
 fi
 

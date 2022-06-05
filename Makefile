@@ -28,13 +28,13 @@ else
     UNAME_P := $(shell uname -p)
     OS=$(UNAME_S)
     ifeq ($(UNAME_S),Darwin)
-      LIB_EXT=.dylib
+      LIB_EXT=dylib
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
       MAIN_TARGET=run
     endif
     ifeq ($(UNAME_S),Linux)
-      LIB_EXT=.so
+      LIB_EXT=so
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
       MAIN_TARGET=run
@@ -54,7 +54,8 @@ PKG= luajava-$(LUAJAVA_VERSION)
 TAR_FILE= $(PKG).tar.gz
 ZIP_FILE= $(PKG).zip
 JAR_FILE= $(BUILD_DIR)/lib/$(PKG).jar
-SO_FILE= $(BUILD_DIR)/lib/$(LIB_PREFIX)$(PKG)$(LIB_EXT)
+SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
+SO_FILE= $(BUILD_DIR)/lib/$(SO_BASE)
 DIST_DIR= $(PKG)
 
 PKGTREE=org/keplerproject/luajava
@@ -103,10 +104,17 @@ failed:
 	@echo "System $(OS) not recognized or not supported for the time being"
 
 .PHONY: install
-install: $(PREFIX) $(JAR_FILE) install-so
+install: $(PREFIX) $(JAR_FILE) install-lib install-exe
+
+.PHONY: install-exe
+install-exe:
 	cp -a $(BUILD_DIR)/bin/luajava $(PREFIX)/bin/
+
+.PHONY: install-lib
+install-lib:
 	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
 
+.PHONY: uninstall
 uninstall:
 	-test -d "$(PREFIX)" && rm -i $(PREFIX)/bin/luajava
 	-test -d "$(PREFIX)" && rm -i $(PREFIX)/lib/*luajava*
@@ -114,8 +122,16 @@ uninstall:
 .PHONY: maven-install
 maven-install:
 	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar
+	
+# this will install the native library in the maven repository
+# this would be ideal; unfortunately for some reason, maven strips the $(SO_FILE) from its lib prefix in the maven repo,
+# e.g. 'libluajava-2.3.dylib' -> 'luajava-2.3.dylib'
+# I cannot figure out why, and the problem is that java still looks for the prefixed name (with lib*) at link time
+# For the moment, one is reduced to install the native libraries in a system directory (i.e. with the install-lib or install-so rule).
+maven-install-so:
 	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT)
 
+.PHONY: maven-uninstall
 maven-uninstall:
 	-rm -rfv ~/.m2/repository/org/keplerproject/luajava
 
@@ -123,6 +139,7 @@ maven-uninstall:
 install-so: $(PREFIX) $(SO_FILE)
 	cp -a $(SO_FILE) $(PREFIX)/lib/
 
+.PHONY: run
 run: $(EXAMPLES_DIR)
 	@echo ------------------
 	@echo   Build Complete
@@ -130,9 +147,13 @@ run: $(EXAMPLES_DIR)
 	@echo
 	$(MAKE) help
 
+.PHONY: help
 help:
 	@echo "For testing: $(BUILD_DIR)/bin/luajava"
-	@echo "For installing under $(PREFIX): [sudo] make install"
+	@echo "For installing under $(PREFIX): [sudo] make install (will install the executable and the libraries)"
+	@echo "For installing the executable only: [sudo] make install-exe (handy if the libraries have been installed with maven)"
+	@echo "For installing the libraries only: [sudo] make install-lib"
+	@echo "For installing $(SO_BASE) only (the native library): [sudo] make install-so"
 	@echo "For installing luajava in the local maven repo (requires maven): make maven-install"
 	@echo
 	@echo "For uninstalling under $(PREFIX): [sudo] make uninstall"
