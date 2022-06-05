@@ -75,7 +75,9 @@ CLASSES     = \
 	$(CLASSDIR)/LuaObject.class \
 	$(CLASSDIR)/LuaState.class \
 	$(CLASSDIR)/LuaStateFactory.class \
-	$(CLASSDIR)/Console.class
+	$(CLASSDIR)/Console.class \
+	$(CLASSDIR)/LuaJavaScriptEngine.class \
+	$(CLASSDIR)/LuaJavaScriptEngineFactory.class
 
 DOC_CLASSES	= \
 	$(SRCDIR)/JavaFunction.java \
