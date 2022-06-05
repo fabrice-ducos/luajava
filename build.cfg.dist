@@ -1,4 +1,9 @@
-BUILD_DIR=build
+# these settings can be overriden on the command line,
+# e.g. make BUILD_DIR=$(PWD)/my-build-folder
+# NOTE: it is important for BUILD_DIR to be absolute (hence the $(PWD) path)
+# PREFIX is to be used only with install and maven-install: make install PREFIX=/my/installation/path
+BUILD_DIR=$(PWD)/build
+PREFIX=/usr/local
 
 # if pkg-config is available on your system, just use it;
 # otherwise, you'll need to find the installation path

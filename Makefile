@@ -54,7 +54,7 @@ PKG= luajava-$(LUAJAVA_VERSION)
 TAR_FILE= $(PKG).tar.gz
 ZIP_FILE= $(PKG).zip
 JAR_FILE= $(BUILD_DIR)/lib/$(PKG).jar
-SO_FILE= $(LIB_PREFIX)$(PKG)$(LIB_EXT)
+SO_FILE= $(BUILD_DIR)/$(LIB_PREFIX)$(PKG)$(LIB_EXT)
 DIST_DIR= $(PKG)
 
 PKGTREE=org/keplerproject/luajava
@@ -100,20 +100,42 @@ start: $(MAIN_TARGET)
 failed:
 	@echo "System $(OS) not recognized or not supported for the time being"
 
+.PHONY: install
+install: $(PREFIX) $(JAR_FILE) install-so
+	cp -a $(BUILD_DIR)/bin/luajava $(PREFIX)/bin/
+	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
+
+.PHONY: maven-install
+maven-install: install-so
+	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar
+
+.PHONY: install-so
+install-so: $(PREFIX) $(SO_FILE)
+	cp -a $(SO_FILE) $(PREFIX)/lib/
+
 run: $(EXAMPLES_DIR)
 	@echo ------------------
-	@echo Build Complete
+	@echo   Build Complete
 	@echo ------------------
+	@echo
+	@echo "For testing: $(BUILD_DIR)/bin/luajava"
+	@echo "For installing under $(PREFIX): [sudo] make install"
+	@echo "For installing the jar in the local maven repo (requires maven): make maven-install"
+	@echo "    (maven-install will also install $(SO_FILE) under $(PREFIX))"
 
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
 build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE)
 	mv $(SO_FILE) $(BUILD_DIR)/lib
-	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/" src/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
+	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/" src/bash/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
 
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR) $(BUILD_DIR)/bin $(BUILD_DIR)/lib
+	mkdir -p "$(BUILD_DIR)" "$(BUILD_DIR)"/bin "$(BUILD_DIR)"/lib
+
+$(PREFIX):
+	mkdir -p "$(PREFIX)" "$(PREFIX)"/bin "$(PREFIX)"/lib
+
 
 #
 # Build .class files.
@@ -172,8 +194,9 @@ checkjdk: $(JAVA_HOME)/bin/java
 cleanh:
 	rm -f src/c/luajava.h
 
+# for safety reasons, clean hardcoded build (the default value, if it exists) and not $(BUILD_DIR)
 cleanb:
-	rm -rf ./$(BUILD_DIR)
+	rm -rf build
 
 clean: cleanh cleanb
 	rm -f $(JAR_FILE)
