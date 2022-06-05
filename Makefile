@@ -107,10 +107,17 @@ install: $(PREFIX) $(JAR_FILE) install-so
 	cp -a $(BUILD_DIR)/bin/luajava $(PREFIX)/bin/
 	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
 
+uninstall:
+	-test -d "$(PREFIX)" && rm -i $(PREFIX)/bin/luajava
+	-test -d "$(PREFIX)" && rm -i $(PREFIX)/lib/*luajava*
+
 .PHONY: maven-install
 maven-install:
 	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar
-	@echo "Don't forget to install $(SO_FILE) with '[sudo] make install-so' if it was not done previously (this is not done automatically because this step may require higher permissions)"
+	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT)
+
+maven-uninstall:
+	-rm -rfv ~/.m2/repositories/org/keplerproject/luajava
 
 .PHONY: install-so
 install-so: $(PREFIX) $(SO_FILE)
@@ -126,9 +133,10 @@ run: $(EXAMPLES_DIR)
 help:
 	@echo "For testing: $(BUILD_DIR)/bin/luajava"
 	@echo "For installing under $(PREFIX): [sudo] make install"
-	@echo "For installing the jar in the local maven repo (requires maven): make maven-install"
-	@echo "    (maven-install won't install $(SO_FILE), it must be done separately)"
-	@echo "For installing $(SO_FILE) under $(PREFIX)/lib: [sudo] make install-so"
+	@echo "For installing luajava in the local maven repo (requires maven): make maven-install"
+	@echo
+	@echo "For uninstalling under $(PREFIX): [sudo] make uninstall"
+	@echo "For uninstalling from the local maven repo: make maven-uninstall"
 
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
