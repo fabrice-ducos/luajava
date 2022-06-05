@@ -1,4 +1,4 @@
-luajava 2.2
+luajava 2.3
 ===========
 
 This is a fork a luajava 2019, updated for Lua 5.4 and modern JDKs.

@@ -8,7 +8,7 @@ ifeq (, $(wildcard build.cfg))
 $(error build.cfg was not found. It is probably a fresh installation. Please copy build.cfg.dist to build.cfg, check up the file and edit it if necessary, then retry)
 endif
 
-include ./build.cfg
+include $(shell pwd)/build.cfg
 
 ifeq (, $(wildcard $(JAVA_HOME)/bin/javac))
 $(error JAVA_HOME=$(JAVA_HOME) doesn't appear to be set a valid JDK path. Please configure JAVA_HOME in build.cfg, then retry)
@@ -54,7 +54,7 @@ PKG= luajava-$(LUAJAVA_VERSION)
 TAR_FILE= $(PKG).tar.gz
 ZIP_FILE= $(PKG).zip
 JAR_FILE= $(BUILD_DIR)/lib/$(PKG).jar
-SO_FILE= $(BUILD_DIR)/$(LIB_PREFIX)$(PKG)$(LIB_EXT)
+SO_FILE= $(BUILD_DIR)/lib/$(LIB_PREFIX)$(PKG)$(LIB_EXT)
 DIST_DIR= $(PKG)
 
 PKGTREE=org/keplerproject/luajava
@@ -106,8 +106,9 @@ install: $(PREFIX) $(JAR_FILE) install-so
 	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
 
 .PHONY: maven-install
-maven-install: install-so
+maven-install:
 	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar
+	@echo "Don't forget to install $(SO_FILE) with '[sudo] make install-so' if it was not done previously (this is not done automatically because this step may require higher permissions)"
 
 .PHONY: install-so
 install-so: $(PREFIX) $(SO_FILE)
@@ -118,16 +119,21 @@ run: $(EXAMPLES_DIR)
 	@echo   Build Complete
 	@echo ------------------
 	@echo
+	$(MAKE) help
+
+help:
 	@echo "For testing: $(BUILD_DIR)/bin/luajava"
 	@echo "For installing under $(PREFIX): [sudo] make install"
 	@echo "For installing the jar in the local maven repo (requires maven): make maven-install"
-	@echo "    (maven-install will also install $(SO_FILE) under $(PREFIX))"
+	@echo "    (maven-install won't install $(SO_FILE), it must be done separately)"
+	@echo "For installing $(SO_FILE) under $(PREFIX)/lib: [sudo] make install-so"
 
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
-build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE)
-	mv $(SO_FILE) $(BUILD_DIR)/lib
+build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE) $(BUILD_DIR)/bin/luajava
+
+$(BUILD_DIR)/bin/luajava: forceit
 	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/" src/bash/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
 
 $(BUILD_DIR):
@@ -153,6 +159,7 @@ $(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
 $(MANIFEST): forceit
 	sed "s/__ENGINE_VERSION__/$(LUAJAVA_VERSION)/;s/__LANGUAGE_VERSION__/$(LUA_VERSION)/" MANIFEST.TEMPLATE > $@
 
+# phony target for forcing some targets to be rebuilt in all cases
 .PHONY: forceit
 forceit:
 
