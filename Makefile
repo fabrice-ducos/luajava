@@ -117,7 +117,7 @@ maven-install:
 	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT)
 
 maven-uninstall:
-	-rm -rfv ~/.m2/repositories/org/keplerproject/luajava
+	-rm -rfv ~/.m2/repository/org/keplerproject/luajava
 
 .PHONY: install-so
 install-so: $(PREFIX) $(SO_FILE)
