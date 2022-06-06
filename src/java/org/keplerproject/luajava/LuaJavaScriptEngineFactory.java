@@ -43,7 +43,7 @@ public class LuaJavaScriptEngineFactory implements ScriptEngineFactory
 
     @Override
     public String getEngineVersion() {
-	return LuaLib.getEngineVersion();
+	return ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class LuaJavaScriptEngineFactory implements ScriptEngineFactory
 
     @Override
     public String getLanguageVersion() {
-	return LuaLib.getLanguageVersion();
+	return ManifestUtil.getAttributeValue("LuaJava-LanguageVersion");
     }
 
     @Override

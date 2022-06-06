@@ -29,62 +29,55 @@ import java.net.URL;
 import java.net.MalformedURLException;
 
 /**
- * LuaLib is a utility class that retrieves the version of the
+ * ManifestUtil is a utility class that retrieves the version of the
  * library from the Manifest file.
  * 
  * @author Fabrice Ducos
  */
-public class LuaLib
+public class ManifestUtil
 {
 
-    private static String ENGINE_VERSION = "unknown"; // the version of the LuaJava script engine
-    private static String LANGUAGE_VERSION = "unknown"; // the version of the Lua language (e.g. 5.4)
+    private static Attributes attr;
 
     static {
 	try {
-	    ENGINE_VERSION = getManifestAttributeValue("LuaJava-EngineVersion");
+	    attr = loadManifest();
 	}
 	catch (IOException ex) {
-	    System.err.println("failed to obtain LuaJava-EngineVersion: " + ex.getMessage());
+	    System.err.println("failed to load the manifest: " + ex.getMessage());
 	}
+    }
 
-	try {
-	    LANGUAGE_VERSION = getManifestAttributeValue("LuaJava-LanguageVersion");
-	}
-	catch (IOException ex) {
-	    System.err.println("failed to obtain LuaJava-LanguageVersion: " + ex.getMessage());
-	}
+    public static Attributes getAttributes() {
+	return attr;
     }
     
-    private LuaLib() {}
-
-    public static String getEngineVersion() {
-	return ENGINE_VERSION;
-    }
-
-    public static String getLanguageVersion() {
-	return LANGUAGE_VERSION;
+    public static String getAttributeValue(String name) {
+	return attr.getValue(name);
     }
     
-    private static String getManifestAttributeValue(String attributeName) throws MalformedURLException, IOException {
-	// credit: https://stackoverflow.com/questions/1272648/reading-my-own-jars-manifest
-	String value = "unknown";
+    private ManifestUtil() {}
+    
+    private static Attributes loadManifest() throws MalformedURLException, IOException {
+	// inspired from: https://stackoverflow.com/questions/1272648/reading-my-own-jars-manifest
+	attr = new Attributes();
 	
-	Class clazz = LuaLib.class;
+	Class clazz = ManifestUtil.class;
 	String className = clazz.getSimpleName() + ".class";
 	String classPath = clazz.getResource(className).toString();
 	if (!classPath.startsWith("jar")) {
 	    // Class not from JAR
-	    return value;
+	    return attr;
 	}
 	String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + 
 	    "/META-INF/MANIFEST.MF";
+
 	
 	try (InputStream stream = new URL(manifestPath).openStream()) {
 	    Manifest manifest = new Manifest(stream);
-	    Attributes attr = manifest.getMainAttributes();
-	    value = attr.getValue(attributeName);
+	    attr = manifest.getMainAttributes();
 	}
-	return value;
+
+	return attr;
     }
 }

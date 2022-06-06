@@ -69,7 +69,7 @@ METAINF=$(RESOURCES_DIR)/META-INF
 MANIFEST=$(METAINF)/MANIFEST.MF
 
 CLASSES     = \
-	$(CLASSDIR)/LuaLib.class \
+	$(CLASSDIR)/ManifestUtil.class \
 	$(CLASSDIR)/CPtr.class \
 	$(CLASSDIR)/JavaFunction.class \
 	$(CLASSDIR)/LuaException.class \

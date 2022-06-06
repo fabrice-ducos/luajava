@@ -81,7 +81,7 @@ public class LuaState
    */
   static
   {
-    String library = "luajava-" + LuaLib.getEngineVersion();
+    String library = "luajava-" + ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
     System.loadLibrary(library);
   }
 
@@ -238,7 +238,6 @@ public class LuaState
   private synchronized native void _setGlobal(CPtr ptr, String name);
   private synchronized native void _getGlobal(CPtr ptr, String name);
 
-  // LuaLibAux
   private static synchronized native int _LdoFile(CPtr ptr, String fileName);
   private synchronized native int _LdoString(CPtr ptr, String string);
   //private synchronized native int _doBuffer(CPtr ptr, byte[] buff, long sz, String n);
