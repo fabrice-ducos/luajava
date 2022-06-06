@@ -58,12 +58,14 @@ SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
 SO_FILE= $(BUILD_DIR)/lib/$(SO_BASE)
 DIST_DIR= $(PKG)
 
+TOP_DIR=$(shell pwd)
 PKGTREE=org/keplerproject/luajava
 PKGHEAD=org_keplerproject_luajava
-SRCDIR=src/java/$(PKGTREE)
-CLASSDIR=src/java/$(PKGTREE)
-EXAMPLES_DIR=examples
-METAINF=src/java/META-INF
+SRCDIR=$(TOP_DIR)/src/java/$(PKGTREE)
+CLASSDIR=$(TOP_DIR)/src/java/$(PKGTREE)
+EXAMPLES_DIR=$(TOP_DIR)/examples
+RESOURCES_DIR=$(TOP_DIR)/src/resources
+METAINF=$(RESOURCES_DIR)/META-INF
 MANIFEST=$(METAINF)/MANIFEST.MF
 
 CLASSES     = \
@@ -184,7 +186,7 @@ $(PREFIX):
 # Create the JAR
 #
 $(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
-	cd src/java && $(JAR) cvfm $(JAR_FILE) META-INF/MANIFEST.MF $(PKGTREE)/*.class META-INF
+	cd src/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF
 
 # forceit forces the manifest to be regenerated at each call of make
 $(MANIFEST): forceit

@@ -3,7 +3,7 @@ build.cfg
 
 # MANIFEST.MF is generated dynamically by the Makefile
 # from MANIFEST.TEMPLATE
-src/java/META-INF/MANIFEST.MF
+src/resources/META-INF/MANIFEST.MF
 
 # these targets will be automatically generated
 src/c/luajava.h
