@@ -17,23 +17,39 @@ endif
 #############################################################
 JAVAC=$(JAVA_HOME)/bin/javac
 JAVAH=$(JAVA_HOME)/bin/javah
+JAR=$(JAVA_HOME)/bin/jar
+JAVADOC=$(JAVA_HOME)/bin/javadoc
 
 # ref. https://stackoverflow.com/questions/714100/os-detecting-makefile
 MAIN_TARGET=failed
 ifeq ($(OS),Windows_NT)
-    # system not yet supported
-    MAIN_TARGET=failed
+    # the substitution trick converts \ into \\, because \ are not properly
+	# managed by some environments (notably MSYS and MSYS2 that remove single slashes);
+	# there are possibly other solutions, but this one was simple enough
+	JAVA_HOME:=$(subst \,\\, $(JAVA_HOME))
+	JAVAC=$(JAVA_HOME)\\bin\\javac
+	JAVAH=$(JAVA_HOME)\\bin\\javah
+	JAVADOC=$(JAVA_HOME)\\bin\\javadoc
+    JAR=$(JAVA_HOME)\\bin\\jar
+	# no lib prefix is expected on Windows
+	LIB_PREFIX=
+	LIB_EXT=dll
+	LIB_OPTION=-shared
+	JDK_INC_FLAGS=-I$(JAVA_HOME)\\include -I$(JAVA_HOME)\\include\\win32
+    MAIN_TARGET=run
 else
     UNAME_S := $(shell uname -s)
     UNAME_P := $(shell uname -p)
     OS=$(UNAME_S)
     ifeq ($(UNAME_S),Darwin)
+	  LIB_PREFIX=lib
       LIB_EXT=dylib
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
       MAIN_TARGET=run
     endif
     ifeq ($(UNAME_S),Linux)
+	  LIB_PREFIX=lib
       LIB_EXT=so
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
@@ -41,14 +57,11 @@ else
     endif
 endif
 
-LIB_PREFIX=lib
 CC= gcc
 WARN= -O2 -Wall -fPIC -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings
 NOWARN= -Wno-unused-parameter -Wno-nested-externs
 INCS= $(JDK_INC_FLAGS) $(LUA_INCLUDES)
 CFLAGS= $(WARN) $(NOWARN) $(INCS)
-
-JAR=$(JAVA_HOME)/bin/jar
 
 PKG= luajava-$(LUAJAVA_VERSION)
 TAR_FILE= $(PKG).tar.gz
@@ -200,7 +213,7 @@ forceit:
 # Create the API Documentation
 #
 apidoc:
-	$(JAVA_HOME)/bin/javadoc -public -classpath src/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
+	$(JAVADOC) -public -classpath src/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
 
 #
 # Build .c files.
