@@ -23,19 +23,23 @@ JAVADOC=$(JAVA_HOME)/bin/javadoc
 # ref. https://stackoverflow.com/questions/714100/os-detecting-makefile
 MAIN_TARGET=failed
 ifeq ($(OS),Windows_NT)
+    # all the commented lines that follow were intended for native Windows (CMD or Powershell)
+    # but won't work well with MSYS2. For the time being, only MSYS2 is supported on Windows,
+    # GNU make being difficult to use in a portable way on native Windows.
+    #
     # the substitution trick converts \ into \\, because \ are not properly
-	# managed by some environments (notably MSYS and MSYS2 that remove single slashes);
-	# there are possibly other solutions, but this one was simple enough
-	JAVA_HOME:=$(subst \,\\, $(JAVA_HOME))
-	JAVAC=$(JAVA_HOME)\\bin\\javac
-	JAVAH=$(JAVA_HOME)\\bin\\javah
-	JAVADOC=$(JAVA_HOME)\\bin\\javadoc
-    JAR=$(JAVA_HOME)\\bin\\jar
-	# no lib prefix is expected on Windows
-	LIB_PREFIX=
-	LIB_EXT=dll
-	LIB_OPTION=-shared
-	JDK_INC_FLAGS=-I$(JAVA_HOME)\\include -I$(JAVA_HOME)\\include\\win32
+    # managed by some environments (notably MSYS and MSYS2 that remove single slashes);
+    # there are possibly other solutions, but this one was simple enough
+    JAVA_HOME_ESCAPED:=$(subst \,\\, $(JAVA_HOME))
+    JAVAC=$(JAVA_HOME_ESCAPED)\\bin\\javac
+    JAVAH=$(JAVA_HOME_ESCAPED)\\bin\\javah
+    JAVADOC=$(JAVA_HOME_ESCAPED)\\bin\\javadoc
+    JAR=$(JAVA_HOME_ESCAPED)\\bin\\jar
+    # no lib prefix is expected on Windows
+    LIB_PREFIX=
+    LIB_EXT=dll
+    LIB_OPTION=-shared
+    JDK_INC_FLAGS=-I$(JAVA_HOME_ESCAPED)\\include -I$(JAVA_HOME_ESCAPED)\\include\\win32
     MAIN_TARGET=run
 else
     UNAME_S := $(shell uname -s)
@@ -63,13 +67,13 @@ NOWARN= -Wno-unused-parameter -Wno-nested-externs
 INCS= $(JDK_INC_FLAGS) $(LUA_INCLUDES)
 CFLAGS= $(WARN) $(NOWARN) $(INCS)
 
-PKG= luajava-$(LUAJAVA_VERSION)
-TAR_FILE= $(PKG).tar.gz
-ZIP_FILE= $(PKG).zip
-JAR_FILE= $(BUILD_DIR)/lib/$(PKG).jar
+PKG=luajava-$(LUAJAVA_VERSION)
+TAR_FILE=$(PKG).tar.gz
+ZIP_FILE=$(PKG).zip
+JAR_FILE=$(BUILD_DIR)/lib/$(PKG).jar
 SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
-SO_FILE= $(BUILD_DIR)/lib/$(SO_BASE)
-DIST_DIR= $(PKG)
+SO_FILE=$(BUILD_DIR)/lib/$(SO_BASE)
+DIST_DIR=$(PKG)
 
 TOP_DIR=$(shell pwd)
 PKGTREE=org/keplerproject/luajava
@@ -135,16 +139,17 @@ uninstall:
 	-test -d "$(PREFIX)" && rm -i $(PREFIX)/lib/*luajava*
 
 .PHONY: maven-install
-maven-install:
-	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar
-	
-# this will install the native library in the maven repository
-# this would be ideal; unfortunately for some reason, maven strips the $(SO_FILE) from its lib prefix in the maven repo,
-# e.g. 'libluajava-2.3.dylib' -> 'luajava-2.3.dylib'
-# I cannot figure out why, and the problem is that java still looks for the prefixed name (with lib*) at link time
-# For the moment, one is reduced to install the native libraries in a system directory (i.e. with the install-lib or install-so rule).
+maven-install: maven-install-jar maven-install-so
+
+# the extra level (libluajava for the artifactId, instead of simply stopping at luajava), allows to store
+# the .jar and the native library (.dll, .so or .dylib) in the same directory;
+# without this level, the native library would be renamed by Maven 'luajava-x.y.so' (based on the artifactId), 
+# instead of 'libluajava-x.y.so', leading to linkage errors.
+maven-install-jar:
+	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject.luajava -DartifactId=libluajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar	
+
 maven-install-so:
-	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT)
+	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject.luajava -DartifactId=libluajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT)
 
 .PHONY: maven-uninstall
 maven-uninstall:
