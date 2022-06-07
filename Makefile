@@ -185,7 +185,7 @@ $(BUILD_DIR)/bin/luajava: forceit
 $(BUILD_DIR):
 	mkdir -p "$(BUILD_DIR)" "$(BUILD_DIR)"/bin "$(BUILD_DIR)"/lib
 
-$(PREFIX):
+$(PREFIX): forceit
 	mkdir -p "$(PREFIX)" "$(PREFIX)"/bin "$(PREFIX)"/lib
 
 
