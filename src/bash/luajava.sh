@@ -12,8 +12,8 @@ fi
 DEFAULT_PREFIX=`dirname $0`/..
 : "${PREFIX:=$DEFAULT_PREFIX}"
 
-JAR_FILE=luajava-${LUAJAVA_VERSION}.jar
-MAVEN_REPO=~/.m2/repository/org/keplerproject/luajava/${LUAJAVA_VERSION}/
+JAR_FILE=libluajava-${LUAJAVA_VERSION}.jar
+MAVEN_REPO=~/.m2/repository/org/keplerproject/luajava/libluajava/${LUAJAVA_VERSION}/
 LIBDIR=${PREFIX}/lib
 
 if [ -f "${LIBDIR}/${JAR_FILE}" ] ; then
@@ -30,12 +30,8 @@ if [ -f "${MAVEN_REPO}/${JAR_FILE}" ] ; then
     echo "$0: warning: or delete the unwanted copy (the .jar, not the dll|so|dylib file!)" 1>&2
   fi
   
-  # it would be desirable to link against the dynamic library in the maven repo,
-  # but for some reason, it is stripped from its 'lib' prefix by maven install
-  # and is unusable for linking
-  # e.g. libluajava-2.3.dylib becomes luajava-2.3.dylib once Maven installs it, and java fails at link time
-  # Hence one cannot do this: LIBDIR=${MAVEN_REPO}
-  JAR_PATH="${MAVEN_REPO}/${JAR_FILE}"
+  LIBDIR=${MAVEN_REPO}
+  JAR_PATH="${LIBDIR}/${JAR_FILE}"
 fi
 
 exec java -Djava.library.path="${LIBDIR}" -cp "${JAR_PATH}" org.keplerproject.luajava.Console "$@"

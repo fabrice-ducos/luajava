@@ -70,7 +70,7 @@ CFLAGS= $(WARN) $(NOWARN) $(INCS)
 PKG=luajava-$(LUAJAVA_VERSION)
 TAR_FILE=$(PKG).tar.gz
 ZIP_FILE=$(PKG).zip
-JAR_FILE=$(BUILD_DIR)/lib/$(PKG).jar
+JAR_FILE=$(BUILD_DIR)/lib/$(LIB_PREFIX)$(PKG).jar
 SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
 SO_FILE=$(BUILD_DIR)/lib/$(SO_BASE)
 DIST_DIR=$(PKG)
@@ -136,7 +136,7 @@ install-lib:
 .PHONY: uninstall
 uninstall:
 	-test -d "$(PREFIX)" && rm -i $(PREFIX)/bin/luajava
-	-test -d "$(PREFIX)" && rm -i $(PREFIX)/lib/*luajava*
+	-test -d "$(PREFIX)" && rm -i $(PREFIX)/lib/libluajava*
 
 .PHONY: maven-install
 maven-install: maven-install-jar maven-install-so
