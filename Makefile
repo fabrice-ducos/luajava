@@ -11,7 +11,7 @@ endif
 include $(shell pwd)/build.cfg
 
 ifeq (, $(wildcard $(JAVA_HOME)/bin/javac))
-$(error JAVA_HOME=$(JAVA_HOME) doesn't appear to be set a valid JDK path. Please configure JAVA_HOME in build.cfg, then retry)
+$(error JAVA_HOME=$(JAVA_HOME) doesn't appear to be set a valid JDK path. Please configure JAVA_HOME in your environment or build.cfg, then retry (if your JAVA_HOME is set and you still get this message with 'sudo', consider trying 'sudo -E' to preserve your environment))
 endif
 
 #############################################################
@@ -170,13 +170,13 @@ run: $(EXAMPLES_DIR)
 .PHONY: help
 help:
 	@echo "For testing: $(BUILD_DIR)/bin/luajava"
-	@echo "For installing under $(PREFIX): [sudo] make install (will install the executable and the libraries)"
-	@echo "For installing the executable only: [sudo] make install-exe (handy if the libraries have been installed with maven)"
-	@echo "For installing the libraries only: [sudo] make install-lib"
-	@echo "For installing $(SO_BASE) only (the native library): [sudo] make install-so"
+	@echo "For installing under $(PREFIX): [sudo -E] make install (will install the executable and the libraries)"
+	@echo "For installing the executable only: [sudo -E] make install-exe (handy if the libraries have been installed with maven)"
+	@echo "For installing the libraries only: [sudo -E] make install-lib"
+	@echo "For installing $(SO_BASE) only (the native library): [sudo -E] make install-so"
 	@echo "For installing luajava in the local maven repo (requires maven): make maven-install"
 	@echo
-	@echo "For uninstalling under $(PREFIX): [sudo] make uninstall"
+	@echo "For uninstalling under $(PREFIX): [sudo -E] make uninstall"
 	@echo "For uninstalling from the local maven repo: make maven-uninstall"
 
 $(EXAMPLES_DIR): build
