@@ -27,7 +27,7 @@ if [ -f "${MAVEN_REPO}/${JAR_FILE}" ] ; then
     echo "$0: warning: - ${MAVEN_REPO}/${JAR_FILE}" 1>&2 ;
     echo "$0: warning: I will choose ${MAVEN_REPO}/${JAR_FILE}" 1>&2 ;
     echo "$0: warning: in order to remove this warning, run this command in quiet mode (-q)"
-    echo "$0: warning: or delete the unwanted copy (the .jar, not the dll|so|dylib file!)" 1>&2
+    echo "$0: warning: or delete the unwanted copy" 1>&2
   fi
   
   LIBDIR=${MAVEN_REPO}
