@@ -88,18 +88,32 @@ public class LuaJavaScriptEngineFactory implements ScriptEngineFactory
     }
 
     @Override
-    public String getMethodCallSyntax(String obj, String m, String[] p) {
-	throw new UnsupportedOperationException("getMethodCallSyntax is not yet implemented");
+    public String getMethodCallSyntax(String obj, String m, String[] args) {
+	String ret = obj;
+	ret += ":" + m + "(";
+	for (int i = 0; i < args.length; i++) {
+	    ret += args[i];
+	    if (i < args.length - 1) {
+		ret += ", ";
+	    }
+	}
+	ret += ")";
+	return ret;
     }
 
     @Override
     public String getOutputStatement(String toDisplay) {
-	throw new UnsupportedOperationException("getOutputStatement is not yet implemented");
+	return "print(" + toDisplay + ")";
     }
 
     @Override
     public String getProgram(String[] statements) {
-	throw new UnsupportedOperationException("getProgram is not yet implemented");
+	String retval = "";
+	int len = statements.length;
+	for (int i = 0; i < len; i++) {
+	    retval += statements[i] + "\n";
+	}
+	return retval;
     }
 
     @Override
