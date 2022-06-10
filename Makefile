@@ -78,6 +78,7 @@ ZIP_FILE=$(PKG).zip
 JAR_FILE=$(BUILD_DIR)/lib/$(PKG).jar
 SO_BASE=$(PKG).$(LIB_EXT)
 SO_FILE=$(BUILD_DIR)/lib/$(SO_BASE)
+LIB_SO_FILE=$(BUILD_DIR)/lib/lib$(SO_BASE)
 DIST_DIR=$(PKG)
 
 TOP_DIR=$(shell pwd)
@@ -136,7 +137,7 @@ install-exe:
 
 .PHONY: install-lib
 install-lib:
-	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
+	cp -a $(JAR_FILE) $(SO_FILE) $(LIB_SO_FILE) $(PREFIX)/lib/
 
 .PHONY: uninstall
 uninstall:
@@ -160,7 +161,7 @@ maven-install-jar:
 # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
 maven-install-so:
 	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT) && \
-	ln -s $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
+	ln -sf $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
 
 .PHONY: maven-uninstall
 maven-uninstall:
@@ -199,7 +200,8 @@ help:
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
-build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE) $(BUILD_DIR)/bin/luajava
+.PHONY: build
+build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(LIB_SO_FILE) $(BUILD_DIR)/bin/luajava
 
 # one uses pipes (|) in the second sed substitution command because M2_ROOT is a path that
 # contains / or \.
@@ -245,6 +247,10 @@ apidoc:
 #
 #$(SO_FILE): $(OBJS)
 #	export MACOSX_DEPLOYMENT_TARGET=10.3; $(CC) $(LIB_OPTION) -o $@ $? $(LIB_LUA)
+
+$(LIB_SO_FILE): $(SO_FILE)
+	ln -sf $(SO_FILE) $(LIB_SO_FILE)
+
 
 $(SO_FILE): $(OBJS)
 	$(CC) $(LIB_OPTION) -o $@ $? $(LIB_LUA)
