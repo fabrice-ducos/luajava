@@ -30,34 +30,39 @@ ifeq ($(OS),Windows_NT)
     # the substitution trick converts \ into \\, because \ are not properly
     # managed by some environments (notably MSYS and MSYS2 that remove single slashes);
     # there are possibly other solutions, but this one was simple enough
-    JAVA_HOME_ESCAPED:=$(subst \,\\, $(JAVA_HOME))
-    JAVAC=$(JAVA_HOME_ESCAPED)\\bin\\javac
-    JAVAH=$(JAVA_HOME_ESCAPED)\\bin\\javah
-    JAVADOC=$(JAVA_HOME_ESCAPED)\\bin\\javadoc
-    JAR=$(JAVA_HOME_ESCAPED)\\bin\\jar
-    # no lib prefix is expected on Windows
-    LIB_PREFIX=
+    JAVA_HOME_SAFE:=$(subst \,\\,$(JAVA_HOME))
+    JAVAC=$(JAVA_HOME_SAFE)\\bin\\javac
+    JAVAH=$(JAVA_HOME_SAFE)\\bin\\javah
+    JAVADOC=$(JAVA_HOME_SAFE)\\bin\\javadoc
+    JAR=$(JAVA_HOME_SAFE)\\bin\\jar
+    # no lib prefix is expected on Windows for native libraries (dll)
+    # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
     LIB_EXT=dll
     LIB_OPTION=-shared
-    JDK_INC_FLAGS=-I$(JAVA_HOME_ESCAPED)\\include -I$(JAVA_HOME_ESCAPED)\\include\\win32
+    JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)\\include -I$(JAVA_HOME_SAFE)\\include\\win32
     MAIN_TARGET=run
+    # on MSYS2, HOMEPATH (e.g. C:\Users\Username) != HOME (/home/Username)
+    HOMEPATH_SAFE:=$(subst \,/,$(HOMEPATH))
+    M2_ROOT=$(HOMEDRIVE)$(HOMEPATH_SAFE)/.m2
 else
     UNAME_S := $(shell uname -s)
     UNAME_P := $(shell uname -p)
     OS=$(UNAME_S)
     ifeq ($(UNAME_S),Darwin)
-	  LIB_PREFIX=lib
+      JAVA_HOME_SAFE=$(JAVA_HOME)
       LIB_EXT=dylib
       LIB_OPTION=-shared
-      JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
+      JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/darwin
       MAIN_TARGET=run
+      M2_ROOT=$(HOME)/.m2
     endif
     ifeq ($(UNAME_S),Linux)
-	  LIB_PREFIX=lib
+      JAVA_HOME_SAFE=$(JAVA_HOME)
       LIB_EXT=so
       LIB_OPTION=-shared
-      JDK_INC_FLAGS=-I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
+      JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/linux
       MAIN_TARGET=run
+      M2_ROOT=$(HOME)/.m2
     endif
 endif
 
@@ -70,8 +75,8 @@ CFLAGS= $(WARN) $(NOWARN) $(INCS)
 PKG=luajava-$(LUAJAVA_VERSION)
 TAR_FILE=$(PKG).tar.gz
 ZIP_FILE=$(PKG).zip
-JAR_FILE=$(BUILD_DIR)/lib/$(LIB_PREFIX)$(PKG).jar
-SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
+JAR_FILE=$(BUILD_DIR)/lib/$(PKG).jar
+SO_BASE=$(PKG).$(LIB_EXT)
 SO_FILE=$(BUILD_DIR)/lib/$(SO_BASE)
 DIST_DIR=$(PKG)
 
@@ -135,8 +140,8 @@ install-lib:
 
 .PHONY: uninstall
 uninstall:
-	-test -d "$(PREFIX)" && rm -i $(PREFIX)/bin/luajava
-	-test -d "$(PREFIX)" && rm -i $(PREFIX)/lib/libluajava*
+	-rm -i "$(PREFIX)/bin/luajava"
+	-rm -i "$(PREFIX)/lib"/*luajava*
 
 .PHONY: maven-install
 maven-install: maven-install-jar maven-install-so
@@ -146,14 +151,20 @@ maven-install: maven-install-jar maven-install-so
 # without this level, the native library would be renamed by Maven 'luajava-x.y.so' (based on the artifactId), 
 # instead of 'libluajava-x.y.so', leading to linkage errors.
 maven-install-jar:
-	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject.luajava -DartifactId=libluajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar	
+	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar	
 
+# the creation of the link (that adds a "lib" prefix to the native library) is required for a portable access to the native
+# library: the "lib" prefix is expected on POSIX systems (including Linux and OSX) and not on Windows
+# This portability issue is a real pain...
+# For more details:
+# https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
 maven-install-so:
-	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject.luajava -DartifactId=libluajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT)
+	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT) && \
+	ln -s $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
 
 .PHONY: maven-uninstall
 maven-uninstall:
-	-rm -rfv ~/.m2/repository/org/keplerproject/luajava
+	-rm -rfv $(M2_ROOT)/repository/org/keplerproject/luajava
 
 .PHONY: install-so
 install-so: $(PREFIX) $(SO_FILE)
@@ -178,14 +189,23 @@ help:
 	@echo
 	@echo "For uninstalling under $(PREFIX): [sudo -E] make uninstall"
 	@echo "For uninstalling from the local maven repo: make maven-uninstall"
+	@echo
+	@echo "Detected configuration:"
+	@echo "OS: $(OS)"
+	@echo "JAVA_HOME: $(JAVA_HOME_SAFE)"
+	@echo "PREFIX: $(PREFIX)"
+	@echo "M2_ROOT: $(M2_ROOT)"
 
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
 build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE) $(BUILD_DIR)/bin/luajava
 
+# one uses pipes (|) in the second sed substitution command because M2_ROOT is a path that
+# contains / or \.
+#
 $(BUILD_DIR)/bin/luajava: forceit
-	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/" src/bash/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
+	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/;s|__M2_ROOT__|$(M2_ROOT)|" src/bash/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
 
 $(BUILD_DIR):
 	mkdir -p "$(BUILD_DIR)" "$(BUILD_DIR)"/bin "$(BUILD_DIR)"/lib
@@ -244,7 +264,7 @@ $(OBJDIR)/%.o:  %.c
 # Check that the user has a valid JDK install.  This will cause a
 # premature death if JDK is not defined.
 #
-checkjdk: $(JAVA_HOME)/bin/java
+checkjdk: $(JAVA_HOME_SAFE)/bin/java
 
 #
 # Cleanliness.

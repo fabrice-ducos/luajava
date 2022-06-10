@@ -12,8 +12,8 @@ fi
 DEFAULT_PREFIX=`dirname $0`/..
 : "${PREFIX:=$DEFAULT_PREFIX}"
 
-JAR_FILE=libluajava-${LUAJAVA_VERSION}.jar
-MAVEN_REPO=~/.m2/repository/org/keplerproject/luajava/libluajava/${LUAJAVA_VERSION}/
+JAR_FILE=luajava-${LUAJAVA_VERSION}.jar
+MAVEN_REPO=__M2_ROOT__/repository/org/keplerproject/luajava/${LUAJAVA_VERSION}/
 LIBDIR=${PREFIX}/lib
 
 if [ -f "${LIBDIR}/${JAR_FILE}" ] ; then
