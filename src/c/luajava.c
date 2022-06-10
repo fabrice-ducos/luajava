@@ -2453,6 +2453,7 @@ JNIEXPORT jobject JNICALL Java_org_keplerproject_luajava_LuaState__1newthread
    jclass tempClass;
     
    newThread = lua_newthread( L );
+   (void) newThread; // for silencing a "set but not used" warning
 
    tempClass = ( *env )->FindClass( env , "org/keplerproject/luajava/CPtr" );
    obj = ( *env )->AllocObject( env , tempClass );
