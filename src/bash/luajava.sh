@@ -10,11 +10,11 @@ fi
 
 # the prefix is the parent directory of bin, lib, etc
 DEFAULT_PREFIX=`dirname $0`/..
-: "${PREFIX:=$DEFAULT_PREFIX}"
+: "${LUAJAVA_PREFIX:=$DEFAULT_PREFIX}"
 
 JAR_FILE=luajava-${LUAJAVA_VERSION}.jar
 MAVEN_REPO=__M2_ROOT__/repository/org/keplerproject/luajava/${LUAJAVA_VERSION}/
-LIBDIR=${PREFIX}/lib
+LIBDIR=${LUAJAVA_PREFIX}/lib
 
 if [ -f "${LIBDIR}/${JAR_FILE}" ] ; then
    JAR_PATH="${LIBDIR}/${JAR_FILE}"
