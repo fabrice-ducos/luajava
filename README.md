@@ -31,6 +31,18 @@ For installing the jar in the local maven repository (requires maven):
 make maven-install
 ```
 
+## Test luajava with jrunscript
+
+If jrunscript is available with your JDK, you can use it.
+
+With luajava's default system-wide installation (assuming the installation prefix was set to `PREFIX = /usr/local`):
+
+`jrunscript -cp /usr/local/lib/luajava-2.3.jar -Djava.library.path=/usr/local/lib -l luajava`
+
+With the maven installation (on MSYS2/Windows, replace $HOME by $HOMEDRIVE$HOMEPATH):
+
+`jrunscript -cp $HOME/.m2/repository/org/keplerproject/luajava/2.3/luajava-2.3.jar -Djava.library.path=$HOME/.m2/repository/org/keplerproject/luajava/2.3 -l luajava`
+
 ## COMPATIBILITY
 
 Version of Tcl: 5.4
