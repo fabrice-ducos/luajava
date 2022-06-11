@@ -45,7 +45,7 @@ With the maven installation (on MSYS2/Windows, replace $HOME by $HOMEDRIVE$HOMEP
 
 ## COMPATIBILITY
 
-Version of Tcl: 5.4
+Version of Lua: 5.4
 
 This distribution has been successfully built on the following systems:
   - MacOSX Monterey (12.4) with OpenJDK Zulu 17.32.13 (JDK 17.0.2)
