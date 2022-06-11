@@ -15,9 +15,6 @@ Java bindings in order to keep luajava working.
 You will need to have a modern JDK (at least JDK 5+, preferrably JDK 8+) and a modern version of Lua (at least 5.4).
 Lua must be properly installed, and the environment variable JAVA_HOME must be set to a proper JDK root directory.
 
-This version of LuaJava has been built successfully with Tcl 5.4 and OpenJDK 17.2 on MacOSX and Ubuntu Linux.
-It is scheduled to test it on other environments (especially on Windows).
-
 For testing:
 ```
 make
@@ -33,6 +30,16 @@ For installing the jar in the local maven repository (requires maven):
 ```
 make maven-install
 ```
+
+## COMPATIBILITY
+
+Version of Tcl: 5.4
+
+This distribution has been successfully built on the following systems:
+  - MacOSX Monterey (12.4) with OpenJDK Zulu 17.32.13 (JDK 17.0.2)
+  - Ubuntu on Windows 10 with AdoptOpenJDK 11.0.6
+  - MSYS2 on Windows 10 with OpenJDK 17.0.3 Server VM Temurin
+  - Ubuntu 21.10 with OpenJDK 17.0.3 Server VM
 
 Original README
 ===============
