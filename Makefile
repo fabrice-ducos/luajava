@@ -161,7 +161,7 @@ maven-install-jar:
 # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
 maven-install-so:
 	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT) && \
-	ln -sf $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
+	ln -sfr $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
 
 .PHONY: maven-uninstall
 maven-uninstall:
