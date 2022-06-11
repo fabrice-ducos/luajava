@@ -44,6 +44,7 @@ ifeq ($(OS),Windows_NT)
     # on MSYS2, HOMEPATH (e.g. C:\Users\Username) != HOME (/home/Username)
     HOMEPATH_SAFE:=$(subst \,/,$(HOMEPATH))
     M2_ROOT=$(HOMEDRIVE)$(HOMEPATH_SAFE)/.m2
+    MAKE_ALIAS=cp
 else
     UNAME_S := $(shell uname -s)
     UNAME_P := $(shell uname -p)
@@ -55,6 +56,7 @@ else
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/darwin
       MAIN_TARGET=run
       M2_ROOT=$(HOME)/.m2
+      MAKE_ALIAS=ln -sf
     endif
     ifeq ($(UNAME_S),Linux)
       JAVA_HOME_SAFE=$(JAVA_HOME)
@@ -63,6 +65,8 @@ else
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/linux
       MAIN_TARGET=run
       M2_ROOT=$(HOME)/.m2
+      # GNU ln can create relative links with the -r option
+      MAKE_ALIAS=ln -sfr
     endif
 endif
 
@@ -161,7 +165,7 @@ maven-install-jar:
 # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
 maven-install-so:
 	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT) && \
-	ln -sfr $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
+	$(MAKE_ALIAS) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
 
 .PHONY: maven-uninstall
 maven-uninstall:
