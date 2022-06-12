@@ -108,6 +108,16 @@ public final class LuaStateFactory
 	{
 		states.set(idx, null);
 	}
+        
+        public synchronized static List<Integer> getValidStateIndices() {
+            List<Integer> validIndices = new ArrayList<>();
+            for (int i = 0 ; i < states.size() ; i++) {
+                if (states.get(i) != null) {
+                    validIndices.add(i);
+                }
+            }
+            return validIndices;
+        }
 	
 	/**
 	 * Get next available index
