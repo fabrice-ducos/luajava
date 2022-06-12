@@ -31,6 +31,9 @@ import javax.script.SimpleBindings;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.IOException;
+import java.io.Closeable;
+
+import java.util.List;
 
 /**
  * LuaJavaScriptEngine is required for compliance with the JSR223
@@ -38,16 +41,36 @@ import java.io.IOException;
  *
  * @author Fabrice Ducos
  */
-public class LuaJavaScriptEngine extends AbstractScriptEngine
-{
-    
+public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeable
+{   
     public LuaJavaScriptEngine(ScriptEngineFactory factory) {
 	this.factory = factory;
+        
+        luaState = LuaStateFactory.newLuaState();
+        luaState.openLibs();
+    }
+    
+    public void close() {
+        luaState.close();
     }
 
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
 	throw new UnsupportedOperationException("eval(String, ScriptContext) is not yet implemented");
+        /*
+        int ret = luaState.LloadString(script);
+        if (ret == 0) {
+            synchronized(luaState) {
+                ret = luaState.pcall(0, 0, 0);
+                if (ret != 0) {
+                    System.err.print("error: ");
+                    System.err.println(luaState.toString(-1));
+                }
+            }
+        }
+        // should return the expression instead of the error code; to be done later
+        return Integer.valueOf(ret);
+        */
     }
 
     @Override
@@ -79,4 +102,5 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine
     }
 
     private ScriptEngineFactory factory;
+    private final LuaState luaState;
 }
