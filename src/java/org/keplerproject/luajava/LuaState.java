@@ -82,7 +82,13 @@ public class LuaState
   static
   {
     String library = "luajava-" + ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
-    System.loadLibrary(library);
+    try {
+        System.loadLibrary(library);
+    }
+    catch (Throwable e) {
+        Debug.log("failed to load \"" + System.mapLibraryName(library) + "\": " + e);
+        throw e;
+    }
   }
 
   private CPtr luaState;
