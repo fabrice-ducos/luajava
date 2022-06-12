@@ -10,6 +10,9 @@ src/c/luajava.h
 doc/us/API
 build
 
+# a jenv file
+.java-version
+
 *.class
 *.jar
 
