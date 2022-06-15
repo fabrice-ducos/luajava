@@ -76,6 +76,9 @@ NOWARN= -Wno-unused-parameter -Wno-nested-externs
 INCS= $(JDK_INC_FLAGS) $(LUA_INCLUDES)
 CFLAGS= $(WARN) $(NOWARN) $(INCS)
 
+# For MacOSX only (for native libraries)
+JAVA_EXTENSIONS_DIR=$(HOME)/Library/Java/Extensions
+
 PKG=luajava-$(LUAJAVA_VERSION)
 TAR_FILE=$(PKG).tar.gz
 ZIP_FILE=$(PKG).zip
@@ -143,6 +146,13 @@ install-exe:
 install-lib:
 	cp -a $(JAR_FILE) $(SO_FILE) $(LIB_SO_FILE) $(PREFIX)/lib/
 
+.PHONY: install-dylib
+install-dylib: $(JAVA_EXTENSIONS_DIR)
+	cp -a $(LIB_SO_FILE) $<
+
+$(JAVA_EXTENSIONS_DIR):
+	mkdir -p "$(HOME)/Library/Java/Extensions"
+
 .PHONY: uninstall
 uninstall:
 	-rm -i "$(PREFIX)/bin/luajava"
@@ -189,6 +199,7 @@ help:
 	@echo "For installing under $(PREFIX): [sudo -E] make install (will install the executable and the libraries)"
 	@echo "For installing the executable only: [sudo -E] make install-exe (handy if the libraries have been installed with maven)"
 	@echo "For installing the libraries only: [sudo -E] make install-lib"
+	@echo "For installing the native libraries at $(JAVA_EXTENSIONS_DIR) [MacOSX only]: make install-dylib"
 	@echo "For installing $(SO_BASE) only (the native library): [sudo -E] make install-so"
 	@echo "For installing luajava in the local maven repo (requires maven): make maven-install"
 	@echo
