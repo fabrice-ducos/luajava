@@ -13,38 +13,42 @@ import java.util.Locale;
 final class Debug {
     static final boolean DEBUG = false;
     
-    private static String prefix() {
+    private static String prefix(int i) {
         Thread th = Thread.currentThread();
-        StackTraceElement ste = th.getStackTrace()[3];
+        StackTraceElement ste = th.getStackTrace()[i];
         
         String file = ste.getFileName();
         int line = ste.getLineNumber();
         String methodName = ste.getMethodName();
         return file + ":" + methodName + ":" + line + ": ";
     }
+
+    public static String prefix() {
+        return prefix(3);
+    }
     
-    static void log(final String message) {
-        System.err.print(prefix());
+    public static void log(final String message) {
+        System.err.print(prefix(3));
         System.err.println(message);
     }
     
-    static void log(Exception ex) {
-        System.err.print(prefix());
+    public static void log(Exception ex) {
+        System.err.print(prefix(3));
         System.err.println(ex.getMessage());
     }
     
-    static void log(Object obj) {
-        System.err.print(prefix());
+    public static void log(Object obj) {
+        System.err.print(prefix(3));
         System.err.println(obj.toString());
     }
     
-    static void log(String formatString, Object... arguments) {
-        System.err.print(prefix());
+    public static void log(String formatString, Object... arguments) {
+        System.err.print(prefix(3));
         System.err.println(String.format(formatString, arguments));
     }
     
-    static void log(Locale locale, String formatString, Object... arguments) {
-        System.err.print(prefix());
+    public static void log(Locale locale, String formatString, Object... arguments) {
+        System.err.print(prefix(3));
         System.err.println(String.format(locale, formatString, arguments));
     }
 }
