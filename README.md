@@ -33,6 +33,8 @@ make maven-install
 
 ## Test luajava with jrunscript
 
+*jrunscript is the official JDK script runner for JSR223 compliant languages. The JSR223 support of luajava is still partial and in development, therefore you may experience errors when trying this solution for the moment.*
+
 If jrunscript is available with your JDK, you can use it.
 
 With luajava's default system-wide installation (assuming the installation prefix was set to `PREFIX = /usr/local`):
@@ -43,9 +45,8 @@ With the maven installation (on MSYS2/Windows, replace $HOME by $HOMEDRIVE$HOMEP
 
 `jrunscript -cp $HOME/.m2/repository/org/keplerproject/luajava/2.3/luajava-2.3.jar -Djava.library.path=$HOME/.m2/repository/org/keplerproject/luajava/2.3 -l luajava`
 
-CAVEAT: there seems to be a bug in at least some implementations of `jrunscript` on MacOSX. 
-If you experience an `UnsatisfiedLinkError` or `script engine for language luajava can not be found` despite of providing
-the proper classpath and `java.library.path`, you should set the `DYLD_LIBRARY_PATH` environment variable to the same value as `java.library.path` (or extend it depending on your needs).
+CAVEAT: there seems to be a bug in at least some implementations on MacOSX: the `-Djava.library.path` flag has no effect on these implementations, and the JDK only looks for native libraries in some fixed paths, e.g. `/Library/Java/Extensions` and `/Users/username/Library/Java/Extensions`. If you experience an UnsatisfiedLinkError despite of providing the proper java.library.path, you should set the DYLD_LIBRARY_PATH environment variable to the same value as java.library.path (or extend it depending on your needs), or alternatively store your native library (libluajava-x.y.dylib) in one of the Java/Extensions directories.
+
 This bug wasn't observed on other systems (e.g. Linux/Ubuntu or Windows/MSYS2).
 
 ## COMPATIBILITY
