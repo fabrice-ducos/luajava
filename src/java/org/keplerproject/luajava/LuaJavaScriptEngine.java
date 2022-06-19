@@ -54,23 +54,65 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
         luaState.close();
     }
 
+    public void stackDump() {
+	int top = luaState.getTop();
+
+	System.out.println("Lua stack size: " + top);
+	
+	for (int i = top ; i >= 1 ; i--) {
+	    int t = luaState.type(i);
+
+	    if (t == LuaState.LUA_TSTRING) {
+		System.out.println("  <" + i + "> " + luaState.toString(i));
+	    }
+	    else if (t == LuaState.LUA_TBOOLEAN) {
+		System.out.println("  <" + i + "> " + luaState.toBoolean(i));
+	    }
+	    else if (t == LuaState.LUA_TNUMBER) {
+		System.out.println("  <" + i + "> " + luaState.toNumber(i));
+	    }
+	    else {
+		System.out.println("  <" + i + "> " + luaState.typeName(t));
+	    }
+	}
+    }
+    
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
-	throw new UnsupportedOperationException("eval(String, ScriptContext) is not yet implemented");
-        /*
         int ret = luaState.LloadString(script);
-        if (ret == 0) {
-            synchronized(luaState) {
-                ret = luaState.pcall(0, 0, 0);
-                if (ret != 0) {
-                    System.err.print("error: ");
-                    System.err.println(luaState.toString(-1));
-                }
-            }
+	
+	if (ret != 0) {
+	    String errorMessage = luaState.toString(-1);
+	    luaState.pop(1); // pop error message from the stack
+	    throw new ScriptException(Debug.prefix() + ": " + errorMessage);
+	}
+	
+	synchronized(luaState) {
+	    ret = luaState.pcall(0, 1, 0); // asks for one result
+	    if (ret != 0) {
+		String errorMessage = luaState.toString(-1);
+		luaState.pop(2); // pop result and error message from the stack
+		Debug.log(""); stackDump();
+		throw new ScriptException(Debug.prefix() + ": " + errorMessage);
+	    }
         }
-        // should return the expression instead of the error code; to be done later
-        return Integer.valueOf(ret);
-        */
+
+	int type = luaState.type(-1);
+
+	//for debugging
+	//Debug.log("type of expression: " + luaState.typeName(type));
+	
+	Object result;
+	try {
+	    result = luaState.toJavaObject(-1);
+	    luaState.pop(1);
+	}
+	catch (LuaException ex) {
+	    throw new ScriptException(ex);
+	}
+
+	return result;
+	
     }
 
     @Override
