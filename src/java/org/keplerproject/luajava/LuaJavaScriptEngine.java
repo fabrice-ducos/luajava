@@ -78,6 +78,13 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 	}
     }
 
+    private boolean isDefaultBinding(String key) {
+	return "javax.script.argv".equals(key)
+	    || "javax.script.filename".equals(key)
+	    || "engine".equals(key)
+	    || "arguments".equals(key);
+    }
+    
     private String convertJavaToLua(Object javaValue) {
 	// incomplete implementation for quick testing (only strings are implemented)
 	
@@ -89,6 +96,7 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 	StringBuilder sb = new StringBuilder();
 	Bindings bindings = getBindings(scope);
 	for (String key: bindings.keySet()) {
+	    if (isDefaultBinding(key)) continue; // skip default bindings
 	    Object javaValue = bindings.get(key);
 	    String luaValue = convertJavaToLua(javaValue);
 	    sb.append("local " + key + " = " + luaValue + "\n");
@@ -98,10 +106,13 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
     
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
+	final boolean debug = false;
 	String globalInitializationSnippet = getInitializationSnippet(ScriptContext.GLOBAL_SCOPE);
 	String engineInitializationSnippet = getInitializationSnippet(ScriptContext.ENGINE_SCOPE);
 	script = globalInitializationSnippet + "\n" + engineInitializationSnippet + "\n" + script;
         int ret = luaState.LloadString(script);
+
+	if (debug) { Debug.log("script:\n" + script); }
 	
 	if (ret != 0) {
 	    String errorMessage = luaState.toString(-1);
@@ -110,18 +121,24 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 	}
 	
 	synchronized(luaState) {
+	    if (debug) { Debug.log(""); stackDump(); }
 	    ret = luaState.pcall(0, 1, 0); // asks for one result
+	    if (debug) { Debug.log(""); stackDump(); }
 	    if (ret != 0) {
+		if (debug) { Debug.log(""); stackDump(); }
 		String errorMessage = luaState.toString(-1);
-		luaState.pop(2); // pop result and error message from the stack
+		luaState.pop(1); // pop error message from the stack
+		if (debug) { Debug.log(""); stackDump(); }
 		throw new ScriptException(Debug.prefix() + ": " + errorMessage);
 	    }
         }
 	
 	int type = luaState.type(-1);
 
-	//for debugging
-	//Debug.log("type of expression: " + luaState.typeName(type));
+	if (debug) {
+	    Debug.log(""); stackDump();
+	    Debug.log("type of expression: " + luaState.typeName(type));
+	}
 	
 	Object result;
 	try {
