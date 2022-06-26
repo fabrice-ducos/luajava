@@ -48,6 +48,7 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
         
         luaState = LuaStateFactory.newLuaState();
         luaState.openLibs();
+	//localBindings = new SimpleBindings();
     }
     
     public void close() {
@@ -76,9 +77,30 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 	    }
 	}
     }
+
+    private String convertJavaToLua(Object javaValue) {
+	// incomplete implementation for quick testing (only strings are implemented)
+	
+	if (javaValue == null) return "nil";
+	return "\"" + javaValue.toString() + "\"";
+    }
+    
+    private String getInitializationSnippet(int scope) {
+	StringBuilder sb = new StringBuilder();
+	Bindings bindings = getBindings(scope);
+	for (String key: bindings.keySet()) {
+	    Object javaValue = bindings.get(key);
+	    String luaValue = convertJavaToLua(javaValue);
+	    sb.append("local " + key + " = " + luaValue + "\n");
+	}
+	return sb.toString();
+    }
     
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
+	String globalInitializationSnippet = getInitializationSnippet(ScriptContext.GLOBAL_SCOPE);
+	String engineInitializationSnippet = getInitializationSnippet(ScriptContext.ENGINE_SCOPE);
+	script = globalInitializationSnippet + "\n" + engineInitializationSnippet + "\n" + script;
         int ret = luaState.LloadString(script);
 	
 	if (ret != 0) {
@@ -92,11 +114,10 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 	    if (ret != 0) {
 		String errorMessage = luaState.toString(-1);
 		luaState.pop(2); // pop result and error message from the stack
-		Debug.log(""); stackDump();
 		throw new ScriptException(Debug.prefix() + ": " + errorMessage);
 	    }
         }
-
+	
 	int type = luaState.type(-1);
 
 	//for debugging
@@ -112,7 +133,6 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 	}
 
 	return result;
-	
     }
 
     @Override
@@ -138,6 +158,33 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 	return new SimpleBindings();
     }
 
+    // normally provided by AbstractScriptEngine
+    /*
+    @Override
+    public void setBindings(Bindings bindings, int scope) {
+	if (scope == ScriptContext.ENGINE_SCOPE) {
+	    this.localBindings = bindings;
+	}
+	else if (scope == ScriptContext.GLOBAL_SCOPE) {
+	    throw new RunTimeException("GLOBAL_SCOPE not implemented yet in LuaJava's setBindings");
+	    //this.globalBindings = bindings;
+	}
+	else {
+	    throw new IllegalArgumentException("invalid value for scope: " + scope);
+	}
+    }
+
+    @Override
+    public void put(String key, Object value) {
+	getBindings(ScriptContext.ENGINE_SCOPE).put(key, value);
+    }
+
+    @Override
+    public Object get(String key) {
+	return getBindings(ScriptContext.ENGINE_SCOPE).get(key);
+    }
+    */
+
     @Override
     public ScriptEngineFactory getFactory() {
 	return factory;
@@ -145,4 +192,5 @@ public class LuaJavaScriptEngine extends AbstractScriptEngine implements Closeab
 
     private ScriptEngineFactory factory;
     private final LuaState luaState;
+    //private final Bindings localBindings;
 }
