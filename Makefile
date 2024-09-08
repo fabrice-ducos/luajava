@@ -91,10 +91,10 @@ DIST_DIR=$(PKG)
 TOP_DIR=$(shell pwd)
 PKGTREE=org/keplerproject/luajava
 PKGHEAD=org_keplerproject_luajava
-SRCDIR=$(TOP_DIR)/src/java/$(PKGTREE)
-CLASSDIR=$(TOP_DIR)/src/java/$(PKGTREE)
+SRCDIR=$(TOP_DIR)/src/main/java/$(PKGTREE)
+CLASSDIR=$(TOP_DIR)/src/main/java/$(PKGTREE)
 EXAMPLES_DIR=$(TOP_DIR)/examples
-RESOURCES_DIR=$(TOP_DIR)/src/resources
+RESOURCES_DIR=$(TOP_DIR)/src/main/resources
 METAINF=$(RESOURCES_DIR)/META-INF
 MANIFEST=$(METAINF)/MANIFEST.MF
 
@@ -121,7 +121,7 @@ DOC_CLASSES	= \
 	$(SRCDIR)/LuaStateFactory.java \
 	$(SRCDIR)/Console.java
 
-OBJS        = src/c/luajava.o
+OBJS        = src/main/c/luajava.o
 .SUFFIXES: .java .class
 
 .PHONY: run examples build cleanh cleanb clean checkjdk dist dist_dir
@@ -185,6 +185,10 @@ maven-uninstall:
 install-so: $(PREFIX) $(SO_FILE)
 	cp -a $(SO_FILE) $(PREFIX)/lib/
 
+.PHONY: install-so-in-resources
+install-so-in-resources: $(SO_FILE)
+	cp -a $(SO_FILE) $(RESOURCES_DIR)
+
 .PHONY: run
 run: $(EXAMPLES_DIR)
 	@echo ------------------
@@ -222,7 +226,7 @@ build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(LIB_SO_FILE) $(BUILD_DIR)/bin/
 # contains / or \.
 #
 $(BUILD_DIR)/bin/luajava: forceit
-	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/;s|__M2_ROOT__|$(M2_ROOT)|" src/bash/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
+	sed "s/__LUAJAVA_VERSION__/$(LUAJAVA_VERSION)/;s|__M2_ROOT__|$(M2_ROOT)|" src/main/bash/luajava.sh > $(BUILD_DIR)/bin/luajava && chmod +x $(BUILD_DIR)/bin/luajava
 
 $(BUILD_DIR):
 	mkdir -p "$(BUILD_DIR)" "$(BUILD_DIR)"/bin "$(BUILD_DIR)"/lib
@@ -235,13 +239,15 @@ $(PREFIX): forceit
 # Build .class files.
 #
 .java.class:
-	$(JAVAC) $(JAVAC_FLAGS) -sourcepath ./src/java $*.java
+	$(JAVAC) $(JAVAC_FLAGS) -sourcepath ./src/main/java $*.java
 
 #
 # Create the JAR
 #
+#$(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES) install-so-in-resources
 $(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
-	cd src/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF
+	#cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF $(SO_BASE)
+	cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF
 
 # forceit forces the manifest to be regenerated at each call of make
 $(MANIFEST): forceit
@@ -255,7 +261,7 @@ forceit:
 # Create the API Documentation
 #
 apidoc:
-	$(JAVADOC) -public -classpath src/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
+	$(JAVADOC) -public -classpath src/main/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
 
 #
 # Build .c files.
@@ -270,11 +276,11 @@ $(LIB_SO_FILE): $(SO_FILE)
 $(SO_FILE): $(OBJS)
 	$(CC) $(LIB_OPTION) -o $@ $? $(LIB_LUA)
 
-src/c/luajava.c: src/c/luajava.h
+src/main/c/luajava.c: src/main/c/luajava.h
 
-src/c/luajava.h:
-	test -x $(JAVAH) && $(JAVAH) -o src/c/luajava.h -classpath "$(JAR_FILE)" org.keplerproject.luajava.LuaState || \
-	( $(JAVAC) -cp "$(JAR_FILE)" -h src/c $(SRCDIR)/LuaState.java && mv src/c/$(PKGHEAD)_LuaState.h src/c/luajava.h )
+src/main/c/luajava.h:
+	test -x $(JAVAH) && $(JAVAH) -o src/main/c/luajava.h -classpath "$(JAR_FILE)" org.keplerproject.luajava.LuaState || \
+	( $(JAVAC) -cp "$(JAR_FILE)" -h src/main/c $(SRCDIR)/LuaState.java && mv src/main/c/$(PKGHEAD)_LuaState.h src/main/c/luajava.h )
 
 ## regras implicitas para compilacao
 
@@ -291,7 +297,7 @@ checkjdk: $(JAVA_HOME_SAFE)/bin/java
 # Cleanliness.
 #
 cleanh:
-	rm -f src/c/luajava.h
+	rm -f src/main/c/luajava.h
 
 # for safety reasons, clean hardcoded build (the default value, if it exists) and not $(BUILD_DIR)
 cleanb:
@@ -301,7 +307,7 @@ clean: cleanh cleanb
 	rm -f $(JAR_FILE)
 	rm -f $(SO_FILE)
 	rm -rf doc/us/API
-	rm -f $(CLASSDIR)/*.class src/c/*.o
+	rm -f $(CLASSDIR)/*.class src/main/c/*.o
 	rm -f $(TAR_FILE) $(ZIP_FILE)
 	cd $(EXAMPLES_DIR) && $(MAKE) clean
 	rm -f $(MANIFEST)
