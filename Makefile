@@ -185,10 +185,6 @@ maven-uninstall:
 install-so: $(PREFIX) $(SO_FILE)
 	cp -a $(SO_FILE) $(PREFIX)/lib/
 
-.PHONY: install-so-in-resources
-install-so-in-resources: $(SO_FILE)
-	cp -a $(SO_FILE) $(RESOURCES_DIR)
-
 .PHONY: run
 run: $(EXAMPLES_DIR)
 	@echo ------------------
@@ -244,9 +240,7 @@ $(PREFIX): forceit
 #
 # Create the JAR
 #
-#$(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES) install-so-in-resources
 $(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
-	#cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF $(SO_BASE)
 	cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF
 
 # forceit forces the manifest to be regenerated at each call of make
