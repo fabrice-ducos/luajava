@@ -1,3 +1,5 @@
+package org.keplerproject.luajava;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -8,7 +10,9 @@ import java.nio.file.StandardCopyOption;
 
 public class NativeLibraryLoader {
     static {
-	String libname = "luajava";
+	final boolean debug = false;
+	String libname = "luajava" + ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
+	
         try {
             // Determine the appropriate native library path
             String os = System.getProperty("os.name").toLowerCase();
@@ -38,7 +42,11 @@ public class NativeLibraryLoader {
                 }
             }
 
-            System.load(tempFile.toAbsolutePath().toString());
+	    String tempPath = tempFile.toAbsolutePath().toString();
+	    if (debug) {
+		System.err.println("org.keplerproject.luajava.NativeLibraryPath: trying to load " + tempPath);
+	    }
+            System.load(tempPath);
 
             // Clean up
             tempFile.toFile().deleteOnExit();
