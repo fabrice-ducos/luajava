@@ -24,7 +24,6 @@ public class NativeLibraryLoader {
             }
 
             // Load the library
-	    System.out.println("libPath: " + libPath);
             InputStream in = NativeLibraryLoader.class.getResourceAsStream("/" + libPath);
             if (in == null) {
                 throw new RuntimeException("Native library not found: " + libPath);
