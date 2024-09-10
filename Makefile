@@ -98,6 +98,7 @@ SRCDIR=$(TOP_DIR)/src/main/java/$(PKGTREE)
 CLASSDIR=$(TOP_DIR)/src/main/java/$(PKGTREE)
 EXAMPLES_DIR=$(TOP_DIR)/examples
 RESOURCES_DIR=$(TOP_DIR)/src/main/resources
+NATIVE_DIR=$(TOP_DIR)/native
 METAINF=$(RESOURCES_DIR)/META-INF
 MANIFEST=$(METAINF)/MANIFEST.MF
 
@@ -232,7 +233,7 @@ $(PREFIX): forceit
 # Create the JAR
 #
 $(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
-	cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF
+	cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF && cd - && $(JAR) -uf $(JAR_FILE) $(NATIVE_DIR)
 
 # forceit forces the manifest to be regenerated at each call of make
 $(MANIFEST): forceit
