@@ -20,6 +20,8 @@ JAVAH=$(JAVA_HOME)/bin/javah
 JAR=$(JAVA_HOME)/bin/jar
 JAVADOC=$(JAVA_HOME)/bin/javadoc
 
+NATIVE_DIR=native
+
 # ref. https://stackoverflow.com/questions/714100/os-detecting-makefile
 MAIN_TARGET=failed
 ifeq ($(OS),Windows_NT)
@@ -39,6 +41,7 @@ ifeq ($(OS),Windows_NT)
     # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
     LIB_PREFIX=
     LIB_EXT=dll
+    NATIVE_SUBDIR=$(NATIVE_DIR)/windows
     LIB_OPTION=-shared
     JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)\\include -I$(JAVA_HOME_SAFE)\\include\\win32
     MAIN_TARGET=run
@@ -54,6 +57,7 @@ else
       JAVA_HOME_SAFE=$(JAVA_HOME)
       LIB_PREFIX=lib
       LIB_EXT=dylib
+      NATIVE_SUBDIR=$(NATIVE_DIR)/macos
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/darwin
       MAIN_TARGET=run
@@ -64,6 +68,7 @@ else
       JAVA_HOME_SAFE=$(JAVA_HOME)
       LIB_PREFIX=lib
       LIB_EXT=so
+      NATIVE_SUBDIR=$(NATIVE_DIR)/linux
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/linux
       MAIN_TARGET=run
@@ -88,6 +93,7 @@ ZIP_FILE=$(PKG).zip
 JAR_FILE=$(BUILD_DIR)/lib/$(PKG).jar
 SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
 SO_FILE=$(BUILD_DIR)/lib/$(SO_BASE)
+SO_FILE_IN_NATIVE=$(NATIVE_SUBDIR)/$(SO_BASE)
 DIST_DIR=$(PKG)
 M2_TARGET_DIR=$(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)
 
@@ -98,7 +104,6 @@ SRCDIR=$(TOP_DIR)/src/main/java/$(PKGTREE)
 CLASSDIR=$(TOP_DIR)/src/main/java/$(PKGTREE)
 EXAMPLES_DIR=$(TOP_DIR)/examples
 RESOURCES_DIR=$(TOP_DIR)/src/main/resources
-NATIVE_DIR=$(TOP_DIR)/native
 METAINF=$(RESOURCES_DIR)/META-INF
 MANIFEST=$(METAINF)/MANIFEST.MF
 
@@ -208,7 +213,7 @@ $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
 .PHONY: build
-build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE) $(BUILD_DIR)/bin/luajava
+build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE_IN_NATIVE) $(BUILD_DIR)/bin/luajava
 
 # one uses pipes (|) in the second sed substitution command because M2_ROOT is a path that
 # contains / or \.
@@ -248,6 +253,9 @@ forceit:
 #
 apidoc:
 	$(JAVADOC) -public -classpath src/main/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
+
+$(SO_FILE_IN_NATIVE): $(SO_FILE)
+	cp $< $@ && cd $(NATIVE_SUBDIR)
 
 #
 # Build .c files.
