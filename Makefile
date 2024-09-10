@@ -113,7 +113,8 @@ CLASSES     = \
 	$(CLASSDIR)/LuaStateFactory.class \
 	$(CLASSDIR)/Console.class \
 	$(CLASSDIR)/LuaJavaScriptEngine.class \
-	$(CLASSDIR)/LuaJavaScriptEngineFactory.class
+	$(CLASSDIR)/LuaJavaScriptEngineFactory.class \
+	$(CLASSDIR)/NativeLibraryLoader.class
 
 DOC_CLASSES	= \
 	$(SRCDIR)/JavaFunction.java \
@@ -162,7 +163,7 @@ uninstall:
 	-rm -i "$(PREFIX)/lib"/*luajava*
 
 .PHONY: maven-install
-maven-install: maven-install-jar maven-install-so
+maven-install: maven-install-jar
 
 # the extra level (libluajava for the artifactId, instead of simply stopping at luajava), allows to store
 # the .jar and the native library (.dll, .so or .dylib) in the same directory;
@@ -171,26 +172,9 @@ maven-install: maven-install-jar maven-install-so
 maven-install-jar:
 	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar	
 
-# the creation of the link (that adds a "lib" prefix to the native library) is required for a portable access to the native
-# library: the "lib" prefix is expected on POSIX systems (including Linux and OSX) and not on Windows
-# This portability issue is a real pain...
-# For more details:
-# https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
-maven-install-so:
-	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT) && \
-	cd $(M2_TARGET_DIR) && mv $(PKG).$(LIB_EXT) $(SO_BASE)
-
 .PHONY: maven-uninstall
 maven-uninstall:
 	-rm -rfv $(M2_ROOT)/repository/org/keplerproject/luajava
-
-.PHONY: install-so
-install-so: $(PREFIX) $(SO_FILE)
-	cp -a $(SO_FILE) $(PREFIX)/lib/
-
-.PHONY: install-so-in-resources
-install-so-in-resources: $(SO_FILE)
-	cp -a $(SO_FILE) $(RESOURCES_DIR)
 
 .PHONY: run
 run: $(EXAMPLES_DIR)
@@ -206,8 +190,6 @@ help:
 	@echo "For installing under $(PREFIX): [sudo -E] make install (will install the executable and the libraries)"
 	@echo "For installing the executable only: [sudo -E] make install-exe (handy if the libraries have been installed with maven)"
 	@echo "For installing the libraries only: [sudo -E] make install-lib"
-	@echo "For installing the native libraries at $(JAVA_EXTENSIONS_DIR) [MacOSX only]: make install-dylib"
-	@echo "For installing $(SO_BASE) only (the native library): [sudo -E] make install-so"
 	@echo "For installing luajava in the local maven repo (requires maven): make maven-install"
 	@echo
 	@echo "For uninstalling under $(PREFIX): [sudo -E] make uninstall"
@@ -249,9 +231,7 @@ $(PREFIX): forceit
 #
 # Create the JAR
 #
-#$(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES) install-so-in-resources
 $(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
-	#cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF $(SO_BASE)
 	cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF
 
 # forceit forces the manifest to be regenerated at each call of make
