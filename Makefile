@@ -37,6 +37,7 @@ ifeq ($(OS),Windows_NT)
     JAR=$(JAVA_HOME_SAFE)\\bin\\jar
     # no lib prefix is expected on Windows for native libraries (dll)
     # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
+    LIB_PREFIX=
     LIB_EXT=dll
     LIB_OPTION=-shared
     JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)\\include -I$(JAVA_HOME_SAFE)\\include\\win32
@@ -51,6 +52,7 @@ else
     OS=$(UNAME_S)
     ifeq ($(UNAME_S),Darwin)
       JAVA_HOME_SAFE=$(JAVA_HOME)
+      LIB_PREFIX=lib
       LIB_EXT=dylib
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/darwin
@@ -60,6 +62,7 @@ else
     endif
     ifeq ($(UNAME_S),Linux)
       JAVA_HOME_SAFE=$(JAVA_HOME)
+      LIB_PREFIX=lib
       LIB_EXT=so
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/linux
@@ -83,10 +86,10 @@ PKG=luajava-$(LUAJAVA_VERSION)
 TAR_FILE=$(PKG).tar.gz
 ZIP_FILE=$(PKG).zip
 JAR_FILE=$(BUILD_DIR)/lib/$(PKG).jar
-SO_BASE=$(PKG).$(LIB_EXT)
+SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
 SO_FILE=$(BUILD_DIR)/lib/$(SO_BASE)
-LIB_SO_FILE=$(BUILD_DIR)/lib/lib$(SO_BASE)
 DIST_DIR=$(PKG)
+M2_TARGET_DIR=$(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)
 
 TOP_DIR=$(shell pwd)
 PKGTREE=org/keplerproject/luajava
@@ -144,11 +147,11 @@ install-exe:
 
 .PHONY: install-lib
 install-lib:
-	cp -a $(JAR_FILE) $(SO_FILE) $(LIB_SO_FILE) $(PREFIX)/lib/
+	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
 
 .PHONY: install-dylib
 install-dylib: $(JAVA_EXTENSIONS_DIR)
-	cp -a $(LIB_SO_FILE) $<
+	cp -a $(SO_FILE) $<
 
 $(JAVA_EXTENSIONS_DIR):
 	mkdir -p "$(HOME)/Library/Java/Extensions"
@@ -175,7 +178,7 @@ maven-install-jar:
 # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
 maven-install-so:
 	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT) && \
-	$(MAKE_ALIAS) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
+	cd $(M2_TARGET_DIR) && mv $(PKG).$(LIB_EXT) $(SO_BASE)
 
 .PHONY: maven-uninstall
 maven-uninstall:
@@ -215,12 +218,14 @@ help:
 	@echo "JAVA_HOME: $(JAVA_HOME_SAFE)"
 	@echo "PREFIX: $(PREFIX)"
 	@echo "M2_ROOT: $(M2_ROOT)"
+	@echo ""
+	@echo "NOTE: the -E in [sudo -E] is needed if you want to preserve your user's environment with superuser's permissions"
 
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
 .PHONY: build
-build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(LIB_SO_FILE) $(BUILD_DIR)/bin/luajava
+build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE) $(BUILD_DIR)/bin/luajava
 
 # one uses pipes (|) in the second sed substitution command because M2_ROOT is a path that
 # contains / or \.
@@ -268,10 +273,6 @@ apidoc:
 #
 #$(SO_FILE): $(OBJS)
 #	export MACOSX_DEPLOYMENT_TARGET=10.3; $(CC) $(LIB_OPTION) -o $@ $? $(LIB_LUA)
-
-$(LIB_SO_FILE): $(SO_FILE)
-	ln -sf $(SO_FILE) $(LIB_SO_FILE)
-
 
 $(SO_FILE): $(OBJS)
 	$(CC) $(LIB_OPTION) -o $@ $? $(LIB_LUA)
