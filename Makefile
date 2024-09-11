@@ -153,7 +153,7 @@ install-exe:
 
 .PHONY: install-lib
 install-lib:
-	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
+	cp -a $(JAR_FILE) $(PREFIX)/lib/
 
 .PHONY: install-dylib
 install-dylib: $(JAVA_EXTENSIONS_DIR)
