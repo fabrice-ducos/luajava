@@ -1,4 +1,4 @@
-luajava 2.4
+luajava 2.5
 ===========
 
 This is a fork a luajava 2019, updated for Lua 5.4 and modern JDKs.
@@ -14,6 +14,8 @@ Java bindings in order to keep luajava working.
 
 You will need to have a modern JDK (at least JDK 5+, preferrably JDK 8+) and a modern version of Lua (at least 5.4).
 Lua must be properly installed, and the environment variable JAVA_HOME must be set to a proper JDK root directory.
+
+*Since version 2.5, the luajava native library is stored in the jar file, making it easier to maintain and deploy.*
 
 For testing:
 ```

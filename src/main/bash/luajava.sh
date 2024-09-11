@@ -1,5 +1,19 @@
 #!/bin/bash
 
+function detect_os() {
+  case `uname -s` in
+    Darwin)
+      echo "macosx"
+      ;;
+    Linux)
+      echo "linux"
+      ;;
+    *)
+      echo "unknown"
+      ;;
+  esac
+}
+
 LUAJAVA_VERSION=__LUAJAVA_VERSION__
 quiet_mode=false
 
@@ -34,4 +48,5 @@ if [ -f "${MAVEN_REPO}/${JAR_FILE}" ] ; then
   JAR_PATH="${LIBDIR}/${JAR_FILE}"
 fi
 
-exec java -Djava.library.path="${LIBDIR}" -cp "${JAR_PATH}" org.keplerproject.luajava.Console "$@"
+OS=`detect_os`
+exec java -Djava.library.path="native/$OS" -cp "${JAR_PATH}" org.keplerproject.luajava.Console "$@"

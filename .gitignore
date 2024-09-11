@@ -3,10 +3,10 @@ build.cfg
 
 # MANIFEST.MF is generated dynamically by the Makefile
 # from MANIFEST.TEMPLATE
-src/resources/META-INF/MANIFEST.MF
+src/main/resources/META-INF/MANIFEST.MF
 
 # these targets will be automatically generated
-src/c/luajava.h
+src/main/c/luajava.h
 doc/us/API
 build
 

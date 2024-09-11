@@ -20,6 +20,8 @@ JAVAH=$(JAVA_HOME)/bin/javah
 JAR=$(JAVA_HOME)/bin/jar
 JAVADOC=$(JAVA_HOME)/bin/javadoc
 
+NATIVE_DIR=native
+
 # ref. https://stackoverflow.com/questions/714100/os-detecting-makefile
 MAIN_TARGET=failed
 ifeq ($(OS),Windows_NT)
@@ -37,7 +39,9 @@ ifeq ($(OS),Windows_NT)
     JAR=$(JAVA_HOME_SAFE)\\bin\\jar
     # no lib prefix is expected on Windows for native libraries (dll)
     # https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
+    LIB_PREFIX=
     LIB_EXT=dll
+    NATIVE_SUBDIR=$(NATIVE_DIR)/windows
     LIB_OPTION=-shared
     JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)\\include -I$(JAVA_HOME_SAFE)\\include\\win32
     MAIN_TARGET=run
@@ -51,7 +55,9 @@ else
     OS=$(UNAME_S)
     ifeq ($(UNAME_S),Darwin)
       JAVA_HOME_SAFE=$(JAVA_HOME)
+      LIB_PREFIX=lib
       LIB_EXT=dylib
+      NATIVE_SUBDIR=$(NATIVE_DIR)/macos
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/darwin
       MAIN_TARGET=run
@@ -60,7 +66,9 @@ else
     endif
     ifeq ($(UNAME_S),Linux)
       JAVA_HOME_SAFE=$(JAVA_HOME)
+      LIB_PREFIX=lib
       LIB_EXT=so
+      NATIVE_SUBDIR=$(NATIVE_DIR)/linux
       LIB_OPTION=-shared
       JDK_INC_FLAGS=-I$(JAVA_HOME_SAFE)/include -I$(JAVA_HOME_SAFE)/include/linux
       MAIN_TARGET=run
@@ -83,10 +91,11 @@ PKG=luajava-$(LUAJAVA_VERSION)
 TAR_FILE=$(PKG).tar.gz
 ZIP_FILE=$(PKG).zip
 JAR_FILE=$(BUILD_DIR)/lib/$(PKG).jar
-SO_BASE=$(PKG).$(LIB_EXT)
+SO_BASE=$(LIB_PREFIX)$(PKG).$(LIB_EXT)
 SO_FILE=$(BUILD_DIR)/lib/$(SO_BASE)
-LIB_SO_FILE=$(BUILD_DIR)/lib/lib$(SO_BASE)
+SO_FILE_IN_NATIVE=$(NATIVE_SUBDIR)/$(SO_BASE)
 DIST_DIR=$(PKG)
+M2_TARGET_DIR=$(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)
 
 TOP_DIR=$(shell pwd)
 PKGTREE=org/keplerproject/luajava
@@ -144,11 +153,11 @@ install-exe:
 
 .PHONY: install-lib
 install-lib:
-	cp -a $(JAR_FILE) $(SO_FILE) $(LIB_SO_FILE) $(PREFIX)/lib/
+	cp -a $(JAR_FILE) $(SO_FILE) $(PREFIX)/lib/
 
 .PHONY: install-dylib
 install-dylib: $(JAVA_EXTENSIONS_DIR)
-	cp -a $(LIB_SO_FILE) $<
+	cp -a $(SO_FILE) $<
 
 $(JAVA_EXTENSIONS_DIR):
 	mkdir -p "$(HOME)/Library/Java/Extensions"
@@ -159,7 +168,7 @@ uninstall:
 	-rm -i "$(PREFIX)/lib"/*luajava*
 
 .PHONY: maven-install
-maven-install: maven-install-jar maven-install-so
+maven-install: maven-install-jar
 
 # the extra level (libluajava for the artifactId, instead of simply stopping at luajava), allows to store
 # the .jar and the native library (.dll, .so or .dylib) in the same directory;
@@ -168,22 +177,9 @@ maven-install: maven-install-jar maven-install-so
 maven-install-jar:
 	mvn install:install-file -Dfile=$(JAR_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=jar	
 
-# the creation of the link (that adds a "lib" prefix to the native library) is required for a portable access to the native
-# library: the "lib" prefix is expected on POSIX systems (including Linux and OSX) and not on Windows
-# This portability issue is a real pain...
-# For more details:
-# https://jornvernee.github.io/java/panama-ffi/panama/jni/native/2021/09/13/debugging-unsatisfiedlinkerrors.html
-maven-install-so:
-	mvn install:install-file -Dfile=$(SO_FILE) -DgroupId=org.keplerproject -DartifactId=luajava -Dversion=$(LUAJAVA_VERSION) -Dpackaging=$(LIB_EXT) && \
-	$(MAKE_ALIAS) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/$(SO_BASE) $(M2_ROOT)/repository/org/keplerproject/luajava/$(LUAJAVA_VERSION)/lib$(SO_BASE)
-
 .PHONY: maven-uninstall
 maven-uninstall:
 	-rm -rfv $(M2_ROOT)/repository/org/keplerproject/luajava
-
-.PHONY: install-so
-install-so: $(PREFIX) $(SO_FILE)
-	cp -a $(SO_FILE) $(PREFIX)/lib/
 
 .PHONY: run
 run: $(EXAMPLES_DIR)
@@ -199,8 +195,6 @@ help:
 	@echo "For installing under $(PREFIX): [sudo -E] make install (will install the executable and the libraries)"
 	@echo "For installing the executable only: [sudo -E] make install-exe (handy if the libraries have been installed with maven)"
 	@echo "For installing the libraries only: [sudo -E] make install-lib"
-	@echo "For installing the native libraries at $(JAVA_EXTENSIONS_DIR) [MacOSX only]: make install-dylib"
-	@echo "For installing $(SO_BASE) only (the native library): [sudo -E] make install-so"
 	@echo "For installing luajava in the local maven repo (requires maven): make maven-install"
 	@echo
 	@echo "For uninstalling under $(PREFIX): [sudo -E] make uninstall"
@@ -211,12 +205,14 @@ help:
 	@echo "JAVA_HOME: $(JAVA_HOME_SAFE)"
 	@echo "PREFIX: $(PREFIX)"
 	@echo "M2_ROOT: $(M2_ROOT)"
+	@echo ""
+	@echo "NOTE: the -E in [sudo -E] is needed if you want to preserve your user's environment with superuser's permissions"
 
 $(EXAMPLES_DIR): build
 	cd $(EXAMPLES_DIR) && $(MAKE)
 
 .PHONY: build
-build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(LIB_SO_FILE) $(BUILD_DIR)/bin/luajava
+build: checkjdk $(BUILD_DIR) $(JAR_FILE) apidoc $(SO_FILE_IN_NATIVE) $(BUILD_DIR)/bin/luajava
 
 # one uses pipes (|) in the second sed substitution command because M2_ROOT is a path that
 # contains / or \.
@@ -241,7 +237,7 @@ $(PREFIX): forceit
 # Create the JAR
 #
 $(JAR_FILE): $(BUILD_DIR) $(MANIFEST) $(CLASSES)
-	cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF
+	cd src/main/java && $(JAR) cvfm $(JAR_FILE) $(MANIFEST) $(PKGTREE)/*.class -C $(RESOURCES_DIR) META-INF && cd - && $(JAR) -uf $(JAR_FILE) $(NATIVE_DIR)
 
 # forceit forces the manifest to be regenerated at each call of make
 $(MANIFEST): forceit
@@ -257,15 +253,14 @@ forceit:
 apidoc:
 	$(JAVADOC) -public -classpath src/main/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
 
+$(SO_FILE_IN_NATIVE): $(SO_FILE)
+	cp $< $@ && cd $(NATIVE_SUBDIR)
+
 #
 # Build .c files.
 #
 #$(SO_FILE): $(OBJS)
 #	export MACOSX_DEPLOYMENT_TARGET=10.3; $(CC) $(LIB_OPTION) -o $@ $? $(LIB_LUA)
-
-$(LIB_SO_FILE): $(SO_FILE)
-	ln -sf $(SO_FILE) $(LIB_SO_FILE)
-
 
 $(SO_FILE): $(OBJS)
 	$(CC) $(LIB_OPTION) -o $@ $? $(LIB_LUA)
