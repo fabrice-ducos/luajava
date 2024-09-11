@@ -104,7 +104,7 @@ public class LuaState
           }
 
           // Load the library
-          InputStream in = NativeLibraryLoader.class.getResourceAsStream("/" + libPath);
+          InputStream in = LuaState.class.getResourceAsStream("/" + libPath);
           if (in == null) {
               throw new RuntimeException("Native library not found: " + libPath);
           }
