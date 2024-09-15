@@ -78,11 +78,11 @@ else
     endif
 endif
 
-CC= gcc
-WARN= -O2 -Wall -fPIC -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings
-NOWARN= -Wno-unused-parameter -Wno-nested-externs
-INCS= $(JDK_INC_FLAGS) $(LUA_INCLUDES)
-CFLAGS= $(WARN) $(NOWARN) $(INCS)
+CC=gcc
+WARN=-O2 -Wall -fPIC -W -Waggregate-return -Wcast-align -Wmissing-prototypes -Wnested-externs -Wshadow -Wwrite-strings
+NOWARN=-Wno-unused-parameter -Wno-nested-externs
+INCS=$(JDK_INC_FLAGS) $(LUA_INCLUDES)
+CFLAGS=$(WARN) $(NOWARN) $(INCS)
 
 # For MacOSX only (for native libraries)
 JAVA_EXTENSIONS_DIR=$(HOME)/Library/Java/Extensions
@@ -254,7 +254,7 @@ apidoc:
 	$(JAVADOC) -public -classpath src/main/java/ -quiet -d "doc/us/API" $(DOC_CLASSES)
 
 $(SO_FILE_IN_NATIVE): $(SO_FILE)
-	cp $< $@ && cd $(NATIVE_SUBDIR)
+	cp $< $@
 
 #
 # Build .c files.
