@@ -8,13 +8,14 @@ ifeq (, $(wildcard build.cfg))
 $(error build.cfg was not found. It is probably a fresh installation. Please copy build.cfg.dist to build.cfg, check up the file and edit it if necessary, then retry)
 endif
 
-include $(shell pwd)/build.cfg
+include build.cfg
 
-ifeq (, $(wildcard $(JAVA_HOME)/bin/javac))
-$(error JAVA_HOME=$(JAVA_HOME) doesn't appear to be set a valid JDK path. Please configure JAVA_HOME in your environment or build.cfg, then retry (if your JAVA_HOME is set and you still get this message with 'sudo', consider trying 'sudo -E' to preserve your environment))
-endif
+#ifeq (, $(wildcard "$(JAVA_HOME)/bin/javac"))
+#$(error JAVA_HOME="$(JAVA_HOME)" doesn't appear to be set a valid JDK path. Please configure JAVA_HOME in your environment or build.cfg, then retry (if your JAVA_HOME is set and you still get this message with 'sudo', consider trying 'sudo -E' to preserve your environment))
+#endif
 
 #############################################################
+JAVA=$(JAVA_HOME)/bin/java
 JAVAC=$(JAVA_HOME)/bin/javac
 JAVAH=$(JAVA_HOME)/bin/javah
 JAR=$(JAVA_HOME)/bin/jar
@@ -33,6 +34,7 @@ ifeq ($(OS),Windows_NT)
     # managed by some environments (notably MSYS and MSYS2 that remove single slashes);
     # there are possibly other solutions, but this one was simple enough
     JAVA_HOME_SAFE:=$(subst \,\\,$(JAVA_HOME))
+    JAVA=$(JAVA_HOME_SAFE)\\bin\\java
     JAVAC=$(JAVA_HOME_SAFE)\\bin\\javac
     JAVAH=$(JAVA_HOME_SAFE)\\bin\\javah
     JAVADOC=$(JAVA_HOME_SAFE)\\bin\\javadoc
@@ -280,7 +282,8 @@ $(OBJDIR)/%.o:  %.c
 # Check that the user has a valid JDK install.  This will cause a
 # premature death if JDK is not defined.
 #
-checkjdk: $(JAVA_HOME_SAFE)/bin/java
+.PHONY: checkjdk
+checkjdk: "$(JAVA)"
 
 #
 # Cleanliness.
