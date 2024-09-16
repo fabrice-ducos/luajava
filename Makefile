@@ -283,7 +283,7 @@ $(OBJDIR)/%.o:  %.c
 # premature death if JDK is not defined.
 #
 .PHONY: checkjdk
-checkjdk: "$(JAVA)"
+checkjdk: $(JAVA)
 
 #
 # Cleanliness.
