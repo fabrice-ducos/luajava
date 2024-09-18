@@ -121,7 +121,8 @@ CLASSES     = \
 	$(CLASSDIR)/LuaStateFactory.class \
 	$(CLASSDIR)/Console.class \
 	$(CLASSDIR)/LuaJavaScriptEngine.class \
-	$(CLASSDIR)/LuaJavaScriptEngineFactory.class
+	$(CLASSDIR)/LuaJavaScriptEngineFactory.class \
+	$(CLASSDIR)/NativeLibraryLoader.class
 
 DOC_CLASSES	= \
 	$(SRCDIR)/JavaFunction.java \
