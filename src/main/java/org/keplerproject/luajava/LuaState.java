@@ -92,13 +92,9 @@ public class LuaState
   }
 
   private static void init() {
-    try {
-        Class.forName("org.keplerproject.luajava.NativeLibraryLoader");
-    }
-    catch (ClassNotFoundException e) {
-        e.printStackTrace();
-        throw new RuntimeException("unable to find org.keplerproject.luajava.NativeLibraryLoader: " + e.getMessage());
-    }
+      String luajava = "luajava-" + ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
+      NativeLibraryLoader.loadLibrary("lua5.4");
+      NativeLibraryLoader.loadLibrary(luajava);
   }
   
   private CPtr luaState;

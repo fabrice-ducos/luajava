@@ -11,16 +11,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class NativeLibraryLoader {
-    static {
-        init();
-    }
-
-    public static void init() {
+    public static void loadLibrary(String defaultLibName) {
         /* it is needed to print exception messages before throwing them, because jrunscript (a standard JSR223 tool)
 	 * doesn't display low level exception messages, making troubleshooting difficult
 	 */
-
-        String defaultLibName = "luajava-" + ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
+	
         String debugProperty = System.getProperty(defaultLibName + ".debug");
         final boolean debug = convertToBoolean(debugProperty);
 
