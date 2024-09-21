@@ -86,54 +86,21 @@ public class LuaState
    * Opens the library containing the luajava API
    */
 
+  
   static {
-      String libname = "luajava-" + ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
-    
-      try {
-          // Determine the appropriate native library path
-          String os = System.getProperty("os.name").toLowerCase();
-          String arch = System.getProperty("os.arch").toLowerCase();
-          String libPath = "native/";
-
-          if (os.contains("win")) {
-              libPath += "windows/" + libname + ".dll";
-          } else if (os.contains("nix") || os.contains("nux") || os.contains("mac")) {
-              libPath += os.contains("mac") ? "macos/lib" + libname + ".dylib" : "linux/lib" + libname + ".so";
-          } else {
-              throw new UnsupportedOperationException("Unsupported OS: " + os);
-          }
-
-          // Load the library
-          InputStream in = LuaState.class.getResourceAsStream("/" + libPath);
-          if (in == null) {
-              throw new RuntimeException("Native library not found: " + libPath);
-          }
-
-          Path tempFile = Files.createTempFile(libname, getExtension(libPath));
-          try (OutputStream out = new FileOutputStream(tempFile.toFile())) {
-              byte[] buffer = new byte[1024];
-              int bytesRead;
-              while ((bytesRead = in.read(buffer)) != -1) {
-                  out.write(buffer, 0, bytesRead);
-              }
-          }
-
-          String tempPath = tempFile.toAbsolutePath().toString();
-          System.load(tempPath);
-
-          // Clean up
-          tempFile.toFile().deleteOnExit();
-
-      } catch (Exception e) {
-          throw new RuntimeException("Failed to load the native library", e);
-      }
+    init();
   }
 
-  private static String getExtension(String path) {
-      int lastDot = path.lastIndexOf('.');
-      return (lastDot == -1) ? "" : path.substring(lastDot);
+  private static void init() {
+    try {
+        Class.forName("org.keplerproject.luajava.NativeLibraryLoader");
+    }
+    catch (ClassNotFoundException e) {
+        e.printStackTrace();
+        throw new RuntimeException("unable to find org.keplerproject.luajava.NativeLibraryLoader: " + e.getMessage());
+    }
   }
-
+  
   private CPtr luaState;
 
   private int stateId;

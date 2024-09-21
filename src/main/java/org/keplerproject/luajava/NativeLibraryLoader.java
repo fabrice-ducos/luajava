@@ -20,7 +20,7 @@ public class NativeLibraryLoader {
 	 * doesn't display low level exception messages, making troubleshooting difficult
 	 */
 
-        String defaultLibName = "luajava";
+        String defaultLibName = "luajava-" + ManifestUtil.getAttributeValue("LuaJava-EngineVersion");
         String debugProperty = System.getProperty(defaultLibName + ".debug");
         final boolean debug = convertToBoolean(debugProperty);
 
@@ -55,7 +55,7 @@ public class NativeLibraryLoader {
     private static String getDefaultLibraryPath(String libName) {
         String os = System.getProperty("os.name").toLowerCase();
         //String arch = System.getProperty("os.arch").toLowerCase();
-        String libPath = "native/";
+        String libPath = "/native/";
         if (os.contains("win")) {
             libPath += "windows/" + libName + ".dll";
         } else if (os.contains("nix") || os.contains("nux") || os.contains("mac")) {
